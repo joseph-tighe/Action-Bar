@@ -46,6 +46,9 @@ app.whenReady().then(() => {
   const ret = globalShortcut.register('Alt+Z', () => {
     toggleWindowVisibility()
   })
+  mainWindow.on('blur', () => {
+        mainWindow.hide();
+    });
 
   if (!ret) {
     console.log('registration failed')
