@@ -1,9 +1,8 @@
 window.addEventListener('DOMContentLoaded', () => {
 function getSearch() { return document.getElementById('search'); }
 
-// wait up to 5s for element if it's injected later
 const start = Date.now();
-const waitForSearch = () => {
+function waitForSearch() {
 const s = getSearch();
 if (s) {
 s.click();
