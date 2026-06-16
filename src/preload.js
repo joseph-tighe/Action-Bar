@@ -292,7 +292,7 @@ var icons = {
   'converter': '../static/images/convert.svg',
   'timer': '../static/images/timer.svg',
   'weather': '../static/images/weather.svg',
-  'search': '../static/images/search.svg',
+  'search': '../static/images/wiki.svg',
   'nothing': '../static/images/nothing.png'
 }
 
