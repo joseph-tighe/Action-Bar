@@ -1,5 +1,7 @@
-const { app, BrowserWindow } = require('electron/main')
+const { app, Tray, BrowserWindow } = require('electron/main')
 const path = require('node:path')
+
+let tray = null;
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -10,21 +12,24 @@ function createWindow () {
     }
   })
 
-  win.loadFile('src/index.html')
+  win.loadFile('src/index.html');
 }
 
 app.whenReady().then(() => {
-  createWindow()
+  tray = new Tray('static/images/icon.png');
+  tray.setToolTip('Launch Hub');
+
+  createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+      createWindow();
     }
   })
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
 })
