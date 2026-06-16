@@ -190,7 +190,7 @@ getSearch().addEventListener('keyup', (e) => {
 
 var icons = {
   'calculator': '../static/images/calculator.svg',
-  'converter': '../static/images/covert.svg',
+  'converter': '../static/images/convert.svg',
   'timer': '../static/images/timer.svg',
   'weather': '../static/images/weather.svg',
   'nothing': '../static/images/nothing.png'
