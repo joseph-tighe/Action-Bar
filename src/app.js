@@ -6,7 +6,7 @@ let tray = null;
 function createWindow () {
   const win = new BrowserWindow({
     width: 800,
-    height: 200,
+    height: 50,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     },
@@ -21,7 +21,13 @@ mainWindow = null;
 app.whenReady().then(() => {
   tray = new Tray('static/images/icon.png');
   tray.setToolTip('Launch Hub');
-
+  tray.on('click', () => {
+    if (mainWindow.isVisible()) {
+      mainWindow.hide();
+    } else {
+      mainWindow.show();
+    }
+  })
   mainWindow = createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -29,7 +35,7 @@ app.whenReady().then(() => {
     }
     mainWindow.hide();
   })
-  //mainWindow.hide();
+  mainWindow.hide();
 })
 
 app.on('window-all-closed', () => {
