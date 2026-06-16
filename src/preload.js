@@ -11,10 +11,8 @@ return;
 }
 if (Date.now() - start < 5000) {
 requestAnimationFrame(waitForSearch);
-} else {
-console.warn('#search not found after timeout');
 }
-};
+}
 waitForSearch();
 
 document.addEventListener('click', (e) => {
