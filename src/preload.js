@@ -43,11 +43,11 @@ function canCalculate() {
 }
 function canConvert() {
   s = getSearch().value;
-  if (s.length === 0) return 'nothing';
+  if (s.length === 0) return false;
   if (s.includes("to")) {
     return 'converter';
   }
-  return 'nothing';
+  return false;
 }
 function userSelection() {
   value = getSearch().value;
@@ -68,9 +68,10 @@ function canDo() {
     return 'calculator';
   } else if (canConvert()) {
     return 'converter';
+  } else {
+    return 'nothing';
   }
   //TODO: Implement more features
-  return 'nothing';
 }
 function RunCalculator(enter) {
   if (canCalculate()) {
@@ -208,11 +209,50 @@ function RunTimer(enter) {
     ipcRenderer.send('show-notification', { title: 'Timer', body: 'Time is up' });
   }, time * 1000);
 }
-function RunWeather() {
-  // TODO: Implement weather
+function getCurrentPosition(timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+    const opts = { enableHighAccuracy: true, timeout, maximumAge: 0 };
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      err => reject(err),
+      opts
+    );
+  });
+}
+function RunSearch() {
+  val = getSearch().value;
+  fetchAsync(getSearch().value.replaceAll(" ", "+")).then(data => {
+    if (data.pages.length > 0 && val == getSearch().value) {
+      const resultEl = document.getElementsByClassName('result')[0];
+      for (const page of data.pages) {
+        if (page.description != "Topics referred to by the same term") {
+          resultEl.textContent = `${page.description}`;
+          break;
+        }
+      }
+      const img = document.createElement('img');
+      img.src = icons['search'];
+      img.alt = '';
+      resultEl.appendChild(img);
+    }
+  });
+}
+function RunWeather(enter) {
+  //set Image
+  const resultEl = document.getElementsByClassName('result')[0];
+  resultEl.textContent = `Press enter to get the weather for ${getSearch().value.split("weather")[1].replaceAll(" ", "") == "" ? "your current location" : getSearch().value.split("weather")[1]}`;
+  const img = document.createElement('img');
+  img.src = icons['weather'];
+  img.alt = '';
+  resultEl.appendChild(img);
+  if (enter) {
+    let location = getSearch().value.split("weather")[1].replaceAll(" ", "+");
+    url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
+    ipcRenderer.send('open-url', url);
+  }
 }
 getSearch().addEventListener('keyup', (e) => {
-  console.log(e);
   if (e.key) {
     // TODO: calculator
     switch (userSelection()) {
@@ -226,7 +266,7 @@ getSearch().addEventListener('keyup', (e) => {
         RunTimer(e.key === 'Enter');
         break;
       case 'weather':
-        RunWeather();
+        RunWeather(e.key === 'Enter');
         break;
       case 'nothing':
         switch (canDo()) {
@@ -237,6 +277,7 @@ getSearch().addEventListener('keyup', (e) => {
             RunConverter();
             break;
           case 'nothing':
+            RunSearch();
             break;
         }
         break;
@@ -251,15 +292,16 @@ var icons = {
   'converter': '../static/images/convert.svg',
   'timer': '../static/images/timer.svg',
   'weather': '../static/images/weather.svg',
+  'search': '../static/images/search.svg',
   'nothing': '../static/images/nothing.png'
 }
-
 
 features = [
   "calculator",
   "timer",
   "converter",
-  "weather"
+  "weather",
+  "search"
 ]
 const unitNames = {
   "in": ["inches", "inch", "in"],
@@ -454,4 +496,30 @@ function getConversion(
 
 const conversions = getAllConverstions();
 
-console.log(conversions);
+async function doFetch(q) {
+  let url = "https://en.wikipedia.org/w/rest.php/v1/search/page";
+  let headers = {'Api-User-Agent': 'MediaWiki REST API docs examples/0.1 (https://www.mediawiki.org/wiki/API_talk:REST_API)'}
+  let params = {
+    'q': q,
+    'limit': '20'
+  };
+  let query = Object.keys(params)
+             .map(k => k + '=' + encodeURIComponent(params[k]))
+             .join('&');
+  url = url + '?' + query;
+
+  const rsp = await fetch(url, headers);
+  const data = await rsp.json();
+  return data;
+}
+
+async function fetchAsync(q)
+{
+  try {
+    let result = await doFetch(q);
+    return result;
+  } catch( err ) {
+    console.error( err.message );
+  }
+  return "";
+}

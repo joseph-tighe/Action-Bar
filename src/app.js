@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
 
@@ -80,4 +80,7 @@ function toggleWindowVisibility() {
 
 ipcMain.on('show-notification', (event, { title, body }) => {
     new Notification({ title, body }).show();
+});
+ipcMain.on('open-url', (event, url) => {
+    shell.openExternal(url);
 });
