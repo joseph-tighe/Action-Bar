@@ -1,8 +1,10 @@
-const { app, Tray, BrowserWindow } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
 
 let tray = null;
+
+app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -40,11 +42,37 @@ app.whenReady().then(() => {
     }
     mainWindow.hide();
   })
-  //mainWindow.hide();
+  mainWindow.hide();
+  const ret = globalShortcut.register('Alt+Z', () => {
+    toggleWindowVisibility()
+  })
+
+  if (!ret) {
+    console.log('registration failed')
+  }
+
+  // Check whether a shortcut is registered.
+  console.log(globalShortcut.isRegistered('Alt+Z') ? 'GLobal shortcut is registered' : 'GLobal shortcut failed registration')
+})
+
+app.on('will-quit', () => {
+  // Unregister a shortcut.
+  globalShortcut.unregister('CommandOrControl+X')
+
+  // Unregister all shortcuts.
+  globalShortcut.unregisterAll()
 })
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
+    
   }
 })
+function toggleWindowVisibility() {
+  if (mainWindow.isVisible()) {
+    mainWindow.hide();
+  } else {
+    mainWindow.show();
+  }
+}
