@@ -1,6 +1,7 @@
 const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
+const open = require('open');
 
 let tray = null;
 
@@ -86,4 +87,21 @@ ipcMain.on('show-notification', (event, { title, body }) => {
 });
 ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
+});
+ipcMain.on('open-app', (event, appIdentifier) => {
+    try {
+    if (process.platform === 'darwin') {
+      open('', {app: {name: appIdentifier}}); // appIdentifier: 'TextEdit'
+    } else if (process.platform === 'win32') {
+      // On Windows open() prefers files; use cmd start to open an app by executable name:
+      const { exec } = require('child_process');
+      exec(`start "" "${appIdentifier}"`);
+    } else {
+      // Linux: try to run executable name
+      const { spawn } = require('child_process');
+      spawn(appIdentifier, [], { detached: true, stdio: 'ignore' }).unref();
+    }
+  } catch (err) {
+    console.error('Failed to open app', err);
+  }
 });

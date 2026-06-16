@@ -177,6 +177,9 @@ function floor(x) {
 function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
+function openApp(app) {
+  ipcRenderer.send('open-app', app);
+}
 function RunTimer(enter) {
   let value = getSearch().value || "";
   if (value[0] === "@") {
@@ -277,7 +280,20 @@ getSearch().addEventListener('keyup', (e) => {
             RunConverter();
             break;
           case 'nothing':
-            RunSearch();
+            if (getSearch().value.length > 0) {
+              if (e.key === 'Enter') {
+                openApp(getSearch().value);
+              } else {
+                RunSearch();
+              }
+            } else {
+              const resultEl = document.getElementsByClassName('result')[0];
+              resultEl.textContent = " ";
+              const img = document.createElement('img');
+              img.src = "";
+              img.alt = '';
+              resultEl.appendChild(img);
+            }
             break;
         }
         break;
