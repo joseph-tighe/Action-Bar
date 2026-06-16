@@ -6,26 +6,30 @@ let tray = null;
 function createWindow () {
   const win = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 200,
     webPreferences: {
-      preload: path.join(__dirname, 'src/preload.js')
-    }
+      preload: path.join(__dirname, 'preload.js')
+    },
+    frame: false
+
   })
 
   win.loadFile('src/index.html');
+  return win;
 }
-
+mainWindow = null;
 app.whenReady().then(() => {
   tray = new Tray('static/images/icon.png');
   tray.setToolTip('Launch Hub');
 
-  createWindow();
-
+  mainWindow = createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+      mainWindow = createWindow();
     }
+    mainWindow.hide();
   })
+  //mainWindow.hide();
 })
 
 app.on('window-all-closed', () => {
