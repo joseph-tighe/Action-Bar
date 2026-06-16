@@ -6,7 +6,11 @@ let tray = null;
 function createWindow () {
   const win = new BrowserWindow({
     width: 800,
-    height: 50,
+    height: 100,
+    transparent: true,
+    //vibrancy: 'fullscreen-ui',    // on MacOS
+    //backgroundMaterial: 'acrylic', // on Windows 11
+    resizable: false, // Optional: prevents resizing
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     },
@@ -35,7 +39,7 @@ app.whenReady().then(() => {
     }
     mainWindow.hide();
   })
-  mainWindow.hide();
+  //mainWindow.hide();
 })
 
 app.on('window-all-closed', () => {
