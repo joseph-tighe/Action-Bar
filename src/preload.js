@@ -1,3 +1,5 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
 window.addEventListener('DOMContentLoaded', () => {
 function getSearch() { return document.getElementById('search'); }
 
@@ -56,6 +58,7 @@ function userSelection() {
       }
     }
   }
+  return 'nothing';
 }
 function canDo() {
   const s = getSearch().value;
@@ -69,11 +72,11 @@ function canDo() {
   //TODO: Implement more features
   return 'nothing';
 }
-function RunCalculator() {
+function RunCalculator(enter) {
   if (canCalculate()) {
     equation = getSearch().value;
     setNext = false;
-    if (equation.includes("=")) {
+    if (equation.includes("=") || enter) {
       equation = equation.replace("=", "");
       setNext = true;
     }
@@ -167,20 +170,75 @@ function RunConverter() {
     resultEl.appendChild(img);
   }
 }
+function floor(x) {
+  return Math.floor(x);
+}
+function formatTimeInt(x) {
+  return floor(x).toString().padStart(2, "0");
+}
+function RunTimer(enter) {
+  let value = getSearch().value || "";
+  if (value[0] === "@") {
+    const parts = value.split("timer");
+    if (parts.length < 2) return 'nothing';
+    value = "-" + parts[1];
+  }
+  let numbers = [""];
+  for (const ch of value) {
+    if (/\d/.test(ch)) numbers[numbers.length-1] += ch;
+    else if (numbers[numbers.length-1] !== "") numbers.push("");
+  }
+  if (numbers[numbers.length-1] === "") numbers.pop();
+
+  let time = NaN;
+  if (numbers.length === 1) time = parseInt(numbers[0]) * 60;
+  else if (numbers.length === 2) time = parseInt(numbers[0]) * 60 + parseInt(numbers[1]);
+  else if (numbers.length === 3) time = parseInt(numbers[0]) * 3600 + parseInt(numbers[1]) * 60 + parseInt(numbers[2]);
+  
+  const resultEl = document.getElementsByClassName('result')[0];
+  resultEl.textContent = `${floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0");
+  const img = document.createElement('img');
+  img.src = icons['timer'];
+  img.alt = '';
+  resultEl.appendChild(img);
+  if (!enter || isNaN(time) || time < 0 || time > 86400) return 'nothing';
+
+  ipcRenderer.send('show-notification', { title: 'Timer', body: 'Started timer' });
+  setTimeout(() => {
+    ipcRenderer.send('show-notification', { title: 'Timer', body: 'Time is up' });
+  }, time * 1000);
+}
+function RunWeather() {
+  // TODO: Implement weather
+}
 getSearch().addEventListener('keyup', (e) => {
   console.log(e);
-  if (e.key === 'Enter') {
-    // TODO: Launch app
-  } else {
+  if (e.key) {
     // TODO: calculator
-    switch (canDo()) {
+    switch (userSelection()) {
       case 'calculator':
-        RunCalculator();
+        RunCalculator(e.key === 'Enter');
         break;
       case 'converter':
         RunConverter();
         break;
+      case 'timer':
+        RunTimer(e.key === 'Enter');
+        break;
+      case 'weather':
+        RunWeather();
+        break;
       case 'nothing':
+        switch (canDo()) {
+          case 'calculator':
+            RunCalculator(e.key === 'Enter');
+            break;
+          case 'converter':
+            RunConverter();
+            break;
+          case 'nothing':
+            break;
+        }
         break;
     }
   }
@@ -222,7 +280,7 @@ const unitNames = {
   "cup": ["cups", "cup", "cu"],
   "tsp": ["teaspoons", "teaspoon", "tsp"],
   "tbsp": ["tablespoons", "tablespoon", "tbsp"],
-  "fl oz": ["fluid ounces", "fluid ounce", "floz"],
+  "fl oz": ["fluidounces", "fluidounce", "floz"],
   "pt": ["pints", "pint", "pt"],
   "qt": ["quarts", "quart", "qt"],
   "gal": ["gallons", "gallon", "gal"],
