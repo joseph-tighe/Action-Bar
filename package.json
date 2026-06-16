@@ -1,0 +1,15 @@
+{
+  "name": "Launch Hub",
+  "version": "1.0.0",
+  "description": "Launches apps and quick search",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"TODO: Add Tests\" && exit 1"
+  },
+  "author": "Joseph Tighe",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^42.4.0"
+  }
+}
