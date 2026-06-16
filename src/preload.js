@@ -59,7 +59,12 @@ function RunCalculator() {
     }
     equation.replaceAll("^", "**");
     const result = eval(equation);
-    document.getElementById('result').innerText = result;
+    const resultEl = document.getElementsByClassName('result')[0];
+    resultEl.textContent = result; // for text part
+    const img = document.createElement('img');
+    img.src = icons['calculator'];
+    img.alt = 'calculator';
+    resultEl.appendChild(img);
     if (setNext) {
       getSearch().value = result;
       getSearch().focus();
@@ -82,3 +87,9 @@ getSearch().addEventListener('keyup', (e) => {
   }
 });
 });
+
+
+var icons = {
+  'calculator': '../static/images/calculator.svg',
+  'nothing': '../static/images/nothing.png'
+}

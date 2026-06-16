@@ -1,5 +1,6 @@
 const { app, Tray, BrowserWindow } = require('electron/main')
 const path = require('node:path')
+const fs = require('fs');
 
 let tray = null;
 
@@ -10,7 +11,7 @@ function createWindow () {
     transparent: true,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
-    resizable: false, // Optional: prevents resizing
+    resizable: true, // Optional: prevents resizing
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     },

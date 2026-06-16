@@ -18,8 +18,7 @@ body {
     justify-content: center;
     align-items: center;
 }
-#result {
-    margin-top: 10px;
+#results {
     width: 80%;
     height: 100%;
     font-size: 20px;
@@ -27,4 +26,18 @@ body {
     outline: none;
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.result {
+    width: 100%;
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.result img {
+    justify-self: right;
+    margin-right: 10px;
 }

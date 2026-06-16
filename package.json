@@ -11,5 +11,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^42.4.0"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security"
   }
 }
