@@ -1,14 +1,20 @@
+:root {
+    --background: rgba(0, 0, 0, 0.5);
+    --foreground: #ffffff;
+}
 #search {
     padding: 10px;
     width: 90%;
     height: 100%;
     font-size: 20px;
+    box-shadow: 0 0 10px var(--background);
     border: none;
     outline: none;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
+    background: var(--background);
+    color: var(--foreground);
     border-radius: 10px;
 }
+
 body {
     padding: 0;
     margin: 0;
@@ -23,8 +29,8 @@ body {
     font-size: 20px;
     border: none;
     outline: none;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
+    background: var(--background);
+    color: var(--foreground);
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
 }

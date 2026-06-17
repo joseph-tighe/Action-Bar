@@ -1,5 +1,12 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+var settingsLoaded = false;
+var settings = {};
+fetch("../config/settings.json").then(response => response.json()).then(data => {
+  settings = data;
+  settingsLoaded = true;
+});
+
 window.addEventListener('DOMContentLoaded', () => {
 function getSearch() { return document.getElementById('search'); }
 
@@ -50,8 +57,9 @@ function canConvert() {
   return false;
 }
 function userSelection() {
+  if (settings['tool-declorable'] === false) return 'nothing';
   value = getSearch().value;
-  if (value[0] == "@") {
+  if (value[0] == settings['tool-decloration-char']) {
     for (feature of features) {
       if (value.split(" ")[0].includes(feature)) {
         return feature;
@@ -182,7 +190,7 @@ function openApp(app) {
 }
 function RunTimer(enter) {
   let value = getSearch().value || "";
-  if (value[0] === "@") {
+  if (value[0] === settings['tool-decloration-char']) {
     const parts = value.split("timer");
     if (parts.length < 2) return 'nothing';
     value = "-" + parts[1];
@@ -300,6 +308,14 @@ getSearch().addEventListener('keyup', (e) => {
     }
   }
 });
+setTimeout(async () => {
+  while (!settingsLoaded) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  console.log(settings);
+  document.documentElement.style.setProperty('--background', settings['colors']['background']);
+  document.documentElement.style.setProperty('--foreground', settings['colors']['foreground']);
+}, 100);
 });
 
 

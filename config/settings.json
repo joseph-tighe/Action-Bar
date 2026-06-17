@@ -1,0 +1,9 @@
+{
+    "appName": "Action Bar",
+    "colors": {
+        "foreground": "#ffffff",
+        "background": "rgba(255, 0, 0, 0.5)"
+    },
+    "tool-declorable": true,
+    "tool-decloration-char": "@"
+}
