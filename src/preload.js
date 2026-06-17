@@ -37,13 +37,16 @@ function Quit() {
   window.close();
 }
 function userSelection() {
-  if (settings['tool-declorable'] === false) return 'nothing';
+  if (!settings['tool-declorable']) return 'nothing';
   value = getSearch().value.toLowerCase();
   if (value[0] == settings['tool-decloration-char']) {
     for (feature of features) {
       if (value.split(" ")[0].includes(feature.toLowerCase())) {
         return feature;
       }
+    }
+    if (value.split(" ")[0].includes("quit")) {
+      return 'quit';
     }
   }
   return 'nothing';
@@ -101,8 +104,14 @@ setTimeout(async () => {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   console.log(settings);
-  document.documentElement.style.setProperty('--background', settings['colors']['background']);
-  document.documentElement.style.setProperty('--foreground', settings['colors']['foreground']);
+  document.documentElement.style.setProperty('--background', settings['style']['background']);
+  document.documentElement.style.setProperty('--foreground', settings['style']['foreground']);
+  document.documentElement.style.setProperty('--borderradius', settings['style']['borderradius']);
+  document.documentElement.style.setProperty('--shadowstrength', settings['style']['shadowstrength']);
+  document.documentElement.style.setProperty('--answerbarwidth', settings['style']['answerbarwidth']);
+  document.documentElement.style.setProperty('--searchwidth', settings['style']['searchwidth']);
+  document.documentElement.style.setProperty('--bottomradius', parseFloat(settings['style']['answerbarwidth'].replace("%", "")) >= 99 ? '0px' : settings['style']['borderradius']);
+  document.documentElement.style.setProperty('--expandability', (100-parseFloat(settings['style']['expandability'].replace("%", "")))/100);
 }, 100);
 });
 

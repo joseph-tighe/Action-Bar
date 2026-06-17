@@ -1,18 +1,25 @@
 :root {
     --background: rgba(0, 0, 0, 0.5);
     --foreground: #ffffff;
+    --borderradius: 10px;
+    --shadowstrength: 10px;
+    --answerbarwidth: 90%;
+    --searchwidth: 90%;
+    --bottomradius: 10px;
+    --expandability: 1;
+
 }
 #search {
     padding: 10px;
-    width: 90%;
+    width: calc(var(--searchwidth));
     height: 100%;
     font-size: 20px;
-    box-shadow: 0 0 10px var(--background);
+    box-shadow: 0 0 var(--shadowstrength) var(--background);
     border: none;
     outline: none;
     background: var(--background);    
     color: var(--foreground);
-    border-radius: 10px;
+    border-radius: var(--borderradius) var(--borderradius) var(--bottomradius) var(--bottomradius);
 }
 
 body {
@@ -24,15 +31,18 @@ body {
     align-items: center;
 }
 #results {
-    width: 80%;
+    max-width: calc((var(--answerbarwidth)/100%) * var(--searchwidth));
+    min-width: calc(((var(--answerbarwidth)/100%)*var(--expandability)) * var(--searchwidth));
     height: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
     font-size: 20px;
     border: none;
     outline: none;
     background: var(--background);
     color: var(--foreground);
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: var(--borderradius);
+    border-bottom-right-radius: var(--borderradius);
 }
 .result {
     width: 100%;

@@ -1,8 +1,13 @@
 {
     "appName": "Action Bar",
-    "colors": {
+    "style": {
         "foreground": "#ffffff",
-        "background": "rgba(0, 0, 0, 0.5)"
+        "background": "rgba(0, 0, 0, 0.5)",
+        "borderradius": "10px",
+        "shadowstrength": "10px",
+        "answerbarwidth": "90%",
+        "searchwidth": "90%",
+        "expandability": "0%"
     },
     "tool-declorable": true,
     "tool-decloration-char": "@"
