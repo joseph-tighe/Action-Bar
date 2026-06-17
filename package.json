@@ -9,6 +9,12 @@
     "test": "echo \"TODO: Add Tests\" && exit 1"
   },
   "build": {
+    "files": [
+      "src/*",
+      "config/*",
+      "static/*",
+      "package.json"
+    ],
     "appId": "com.josephtighe.actionbar",
     "publish": [
       {
@@ -23,7 +29,6 @@
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
-    "fs": "^0.0.1-security",
     "open": "^11.0.0"
   }
 }
