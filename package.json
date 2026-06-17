@@ -4,6 +4,7 @@
   "description": "Launches apps and quick search",
   "main": "src/app.js",
   "scripts": {
+    "dist": "electron-builder",
     "start": "electron .",
     "test": "echo \"TODO: Add Tests\" && exit 1"
   },
