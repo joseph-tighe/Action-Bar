@@ -8,7 +8,6 @@ fetch("../config/settings.json").then(response => response.json()).then(data => 
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-function getSearch() { return document.getElementById('search'); }
 
 const start = Date.now();
 function waitForSearch() {
@@ -34,277 +33,66 @@ s.focus({ preventScroll: true });
 s.click();
 }
 }, true);
-function canCalculate() {
-  s = getSearch().value;
-  let isNumericChar = null;
-  const numericChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '%', '.', ',', '^', '(', ')'];
-  for (item of s) {
-    isNumericChar = numericChars.includes(item) || item == " " || item == "=" ? 'calculator' : null;
-    if (isNumericChar) {
-      
-    } else {
-      break;
-    }
-  }
-  return isNumericChar;
-}
-function canConvert() {
-  s = getSearch().value;
-  if (s.length === 0) return false;
-  if (s.includes("to")) {
-    return 'converter';
-  }
-  return false;
+function Quit() {
+  window.close();
 }
 function userSelection() {
   if (settings['tool-declorable'] === false) return 'nothing';
-  value = getSearch().value;
+  value = getSearch().value.toLowerCase();
   if (value[0] == settings['tool-decloration-char']) {
     for (feature of features) {
-      if (value.split(" ")[0].includes(feature)) {
+      if (value.split(" ")[0].includes(feature.toLowerCase())) {
         return feature;
       }
     }
   }
   return 'nothing';
 }
-function canDo() {
-  const s = getSearch().value;
-  if (s.length === 0) return 'nothing';
-  
-  if (canCalculate()) {
-    return 'calculator';
-  } else if (canConvert()) {
-    return 'converter';
-  } else {
-    return 'nothing';
-  }
-  //TODO: Implement more features
-}
-function RunCalculator(enter) {
-  if (canCalculate()) {
-    equation = getSearch().value;
-    setNext = false;
-    if (equation.includes("=") || enter) {
-      equation = equation.replace("=", "");
-      setNext = true;
-    }
-    equation = equation.replaceAll("^", "**");
-    const result = eval(equation);
-    const resultEl = document.getElementsByClassName('result')[0];
-    resultEl.textContent = result; // for text part
-    const img = document.createElement('img');
-    img.src = icons['calculator'];
-    img.alt = '';
-    resultEl.appendChild(img);
-    if (setNext) {
-      getSearch().value = result;
-      getSearch().focus();
-    }
-  }
-}
-function getValueAndUnit(value) {
-  startingIndex = 0;
-  for (char of value) {
-    if (char.match(/[1-9]/)) {
-      break;
-    }
-    startingIndex++;
-  }
-  value2 = value.slice(startingIndex);
-  number = "";
-  unit = "";
-  for (char of value2) {
-    if (char.match(/[a-zA-Z]/) || (char === " " && unit === "")) {
-      unit += char;
-    } else if (unit == "") {
-      number += char;
-    } else {
-      break;
-    }
-  }
-  return [number, unit];
-}
-function getUnit(value) {
-  startingIndex = 0;
-  for (char of value) {
-    if (char.match(/[a-zA-Z]/)) {
-      break;
-    }
-    startingIndex++;
-  }
-  value2 = value.slice(startingIndex);
-  unit = "";
-  for (char of value2) {
-    if (unit === "" || unit.match(/[a-zA-Z]/)) {
-      unit += char;
-    } else {
-      break;
-    }
-  }
-  return unit;
-}
-function formatUnit(unit) {
-  unit = unit.toLowerCase();
-  unit = unit.replace(" ", "");
-  for (key in unitNames) {
-    if (unitNames[key].includes(unit)) {
-      return key;
-    }
-  }
-  return unit;
-}
-function RunConverter() {
-  if (canConvert() !== 'nothing') {
-    valuesString = getSearch().value;
-    values = valuesString.split("to");
-    if (values.length === 2) {
-      var from = values[0];
-      var to = values[1];
-      if (from[from.length - 1] === " ") {
-        from = from.slice(0, -1);
-      }
-    }
-    [FromNumber, FromUnit] = getValueAndUnit(from);
-    toUnit = getUnit(to);
-    toUnit = formatUnit(toUnit);
-    fromUnit = formatUnit(FromUnit);
-    var conversion = conversions[fromUnit + "-" + toUnit];
-    const resultEl = document.getElementsByClassName('result')[0];
-    result = parseFloat(FromNumber) * conversion;
-    resultEl.textContent = result; // for text part
-    const img = document.createElement('img');
-    img.src = icons['converter'];
-    img.alt = '';
-    resultEl.appendChild(img);
-  }
-}
-function floor(x) {
-  return Math.floor(x);
-}
-function formatTimeInt(x) {
-  return floor(x).toString().padStart(2, "0");
-}
 function openApp(app) {
   ipcRenderer.send('open-app', app);
 }
-function RunTimer(enter) {
-  let value = getSearch().value || "";
-  if (value[0] === settings['tool-decloration-char']) {
-    const parts = value.split("timer");
-    if (parts.length < 2) return 'nothing';
-    value = "-" + parts[1];
-  }
-  let numbers = [""];
-  for (const ch of value) {
-    if (/\d/.test(ch)) numbers[numbers.length-1] += ch;
-    else if (numbers[numbers.length-1] !== "") numbers.push("");
-  }
-  if (numbers[numbers.length-1] === "") numbers.pop();
 
-  let time = NaN;
-  if (numbers.length === 1) time = parseInt(numbers[0]) * 60;
-  else if (numbers.length === 2) time = parseInt(numbers[0]) * 60 + parseInt(numbers[1]);
-  else if (numbers.length === 3) time = parseInt(numbers[0]) * 3600 + parseInt(numbers[1]) * 60 + parseInt(numbers[2]);
-  
-  const resultEl = document.getElementsByClassName('result')[0];
-  resultEl.textContent = `${floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0");
-  const img = document.createElement('img');
-  img.src = icons['timer'];
-  img.alt = '';
-  resultEl.appendChild(img);
-  if (!enter || isNaN(time) || time < 0 || time > 86400) return 'nothing';
-
-  ipcRenderer.send('show-notification', { title: 'Timer', body: 'Started timer' });
-  setTimeout(() => {
-    ipcRenderer.send('show-notification', { title: 'Timer', body: 'Time is up' });
-  }, time * 1000);
-}
-function getCurrentPosition(timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
-    const opts = { enableHighAccuracy: true, timeout, maximumAge: 0 };
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-      err => reject(err),
-      opts
-    );
-  });
-}
-function RunSearch() {
-  val = getSearch().value;
-  fetchAsync(getSearch().value.replaceAll(" ", "+")).then(data => {
-    if (data.pages.length > 0 && val == getSearch().value) {
-      const resultEl = document.getElementsByClassName('result')[0];
-      for (const page of data.pages) {
-        if (page.description != "Topics referred to by the same term") {
-          resultEl.textContent = `${page.description}`;
+getSearch().addEventListener('keyup', (e) => {
+  if (e.key) {
+    item = userSelection();
+    hasGone = false;
+    for (let i = 0; i < features.length; i++) {
+      if (item === features[i]) {
+        runFunctions[i](e.key === 'Enter');
+        hasGone = true;
+        break;
+      }
+    }
+    if (!hasGone) {
+      if (item === 'quit') {
+        Quit();
+        hasGone = true;
+      }
+    }
+    if (!hasGone) {
+      for (let i = 0; i < features.length; i++) {
+        if (checkFunctions[i] != null && checkFunctions[i]()) {
+          runFunctions[i](e.key === 'Enter');
+          hasGone = true;
           break;
         }
       }
-      const img = document.createElement('img');
-      img.src = icons['search'];
-      img.alt = '';
-      resultEl.appendChild(img);
     }
-  });
-}
-function RunWeather(enter) {
-  //set Image
-  const resultEl = document.getElementsByClassName('result')[0];
-  resultEl.textContent = `Press enter to get the weather for ${getSearch().value.split("weather")[1].replaceAll(" ", "") == "" ? "your current location" : getSearch().value.split("weather")[1]}`;
-  const img = document.createElement('img');
-  img.src = icons['weather'];
-  img.alt = '';
-  resultEl.appendChild(img);
-  if (enter) {
-    let location = getSearch().value.split("weather")[1].replaceAll(" ", "+");
-    url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
-    ipcRenderer.send('open-url', url);
-  }
-}
-getSearch().addEventListener('keyup', (e) => {
-  if (e.key) {
-    // TODO: calculator
-    switch (userSelection()) {
-      case 'calculator':
-        RunCalculator(e.key === 'Enter');
-        break;
-      case 'converter':
-        RunConverter();
-        break;
-      case 'timer':
-        RunTimer(e.key === 'Enter');
-        break;
-      case 'weather':
-        RunWeather(e.key === 'Enter');
-        break;
-      case 'nothing':
-        switch (canDo()) {
-          case 'calculator':
-            RunCalculator(e.key === 'Enter');
-            break;
-          case 'converter':
-            RunConverter();
-            break;
-          case 'nothing':
-            if (getSearch().value.length > 0) {
-              if (e.key === 'Enter') {
-                openApp(getSearch().value);
-              } else {
-                RunSearch();
-              }
-            } else {
-              const resultEl = document.getElementsByClassName('result')[0];
-              resultEl.textContent = " ";
-              const img = document.createElement('img');
-              img.src = "";
-              img.alt = '';
-              resultEl.appendChild(img);
-            }
-            break;
+    if (!hasGone) {
+      if (getSearch().value.length > 0) {
+        if (e.key === 'Enter') {
+          openApp(getSearch().value);
+        } else {
+          RunSearch();
         }
-        break;
+      } else {
+        const resultEl = document.getElementsByClassName('result')[0];
+        resultEl.textContent = " ";
+        const img = document.createElement('img');
+        img.src = "";
+        img.alt = '';
+        resultEl.appendChild(img);
+      }
     }
   }
 });
@@ -318,23 +106,6 @@ setTimeout(async () => {
 }, 100);
 });
 
-
-var icons = {
-  'calculator': '../static/images/calculator.svg',
-  'converter': '../static/images/convert.svg',
-  'timer': '../static/images/timer.svg',
-  'weather': '../static/images/weather.svg',
-  'search': '../static/images/wiki.svg',
-  'nothing': '../static/images/nothing.png'
-}
-
-features = [
-  "calculator",
-  "timer",
-  "converter",
-  "weather",
-  "search"
-]
 const unitNames = {
   "in": ["inches", "inch", "in"],
   "ft": ["feet", "foot", "ft"],
@@ -527,6 +298,73 @@ function getConversion(
 }
 
 const conversions = getAllConverstions();
+
+function getSearch() { return document.getElementById('search'); }
+
+function floor(x) {
+  return Math.floor(x);
+}
+function formatTimeInt(x) {
+  return floor(x).toString().padStart(2, "0");
+}
+
+function RunSearch() {
+  val = getSearch().value;
+  fetchAsync(getSearch().value.replaceAll(" ", "+")).then(data => {
+    if (data.pages.length > 0 && val == getSearch().value) {
+      const resultEl = document.getElementsByClassName('result')[0];
+      for (const page of data.pages) {
+        if (page.description != "Topics referred to by the same term") {
+          resultEl.textContent = `${page.description}`;
+          break;
+        }
+      }
+      const img = document.createElement('img');
+      img.src = icons['search'];
+      img.alt = '';
+      resultEl.appendChild(img);
+    }
+  });
+}
+function getCurrentPosition(timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
+    const opts = { enableHighAccuracy: true, timeout, maximumAge: 0 };
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      err => reject(err),
+      opts
+    );
+  });
+}
+
+
+var icons = {
+  'search': '../static/images/wiki.svg',
+};
+var features = [];
+var runFunctions = [];
+var checkFunctions = [];
+(async () => {
+files = await fetch('extentions/extentions.json').then(response => response.json());
+for (const file of Object.keys(files)) {
+  let data = files[file];
+  if (data.active) {
+    let code = await fetch(`extentions/${data.file}`).then(response => response.text());
+    eval(code); //make functions
+    let feature = eval(`(() => {
+      return {
+        "RunFunction": ${data.RunFunction},
+        "CheckFunction": ${data.CheckFunction}
+      }  
+    })();`)
+    features.push(data.name);
+    icons[data.name] = data.imageUrl;
+    runFunctions.push(feature.RunFunction);
+    checkFunctions.push(feature.CheckFunction);
+  }
+}
+})();
 
 async function doFetch(q) {
   let url = "https://en.wikipedia.org/w/rest.php/v1/search/page";

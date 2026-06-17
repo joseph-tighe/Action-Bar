@@ -1,0 +1,34 @@
+{
+    "weather": {
+        "file": "Weather.js",
+        "name": "weather",
+        "imageUrl": "../static/images/weather.svg",
+        "active": true,
+        "RunFunction": "RunWeather",
+        "CheckFunction": null
+    },
+    "calculator": {
+        "file": "Calculator.js",
+        "name": "calculator",
+        "imageUrl": "../static/images/calculator.svg",
+        "active": true,
+        "RunFunction": "RunCalculator",
+        "CheckFunction": "canCalculate"
+    },
+    "converter": {
+        "file": "Conversion.js",
+        "name": "converter",
+        "imageUrl": "../static/images/convert.svg",
+        "active": true,
+        "RunFunction": "RunConverter",
+        "CheckFunction": "canConvert"
+    },
+    "timer": {
+        "file": "timer.js",
+        "name": "timer",
+        "imageUrl": "../static/images/timer.svg",
+        "active": true,
+        "RunFunction": "RunTimer",
+        "CheckFunction": null
+    }
+}
