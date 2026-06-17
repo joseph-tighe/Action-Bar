@@ -1,5 +1,5 @@
 {
-  "name": "Launch Hub",
+  "name": "launch-hub",
   "version": "1.3.0",
   "description": "Launches apps and quick search",
   "main": "src/app.js",
