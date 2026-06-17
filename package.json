@@ -1,11 +1,19 @@
 {
   "name": "Launch Hub",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Launches apps and quick search",
   "main": "src/app.js",
   "scripts": {
     "start": "electron .",
     "test": "echo \"TODO: Add Tests\" && exit 1"
+  },
+  "build": {
+    "appId": "com.josephtighe.launchhub",
+    "publish": [
+      {
+        "provider": "github"
+      }
+    ]
   },
   "author": "Joseph Tighe",
   "license": "MIT",
