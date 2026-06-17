@@ -61,7 +61,7 @@ app.whenReady().then(() => {
 
 app.on('will-quit', () => {
   // Unregister a shortcut.
-  globalShortcut.unregister('CommandOrControl+X')
+  globalShortcut.unregister('ALt+Z')
 
   // Unregister all shortcuts.
   globalShortcut.unregisterAll()
