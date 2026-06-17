@@ -9,6 +9,10 @@
         "searchwidth": "90%",
         "expandability": "0%"
     },
+    "window": {
+        "width": 800,
+        "height": 600
+    },
     "tool-declorable": true,
     "tool-decloration-char": "@"
 }

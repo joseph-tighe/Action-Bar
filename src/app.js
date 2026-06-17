@@ -7,10 +7,12 @@ let tray = null;
 
 app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
+const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/settings.json')));
+
 function createWindow () {
   const win = new BrowserWindow({
-    width: 800,
-    height: 100,
+    width: settings['window']['width'],
+    height: settings['window']['height'],
     transparent: true,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
@@ -48,9 +50,11 @@ app.whenReady().then(() => {
     toggleWindowVisibility()
   })
   mainWindow.on('blur', () => {
-        mainWindow.hide();
-    });
-
+    mainWindow.hide();
+  });
+  mainWindow.on('focus', () => {
+    mainWindow.webContents.send('focus-search');
+  });
   if (!ret) {
     console.log('registration failed')
   }

@@ -1,5 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+ipcRenderer.on('focus-search', () => {
+  getSearch().focus();
+}); 
+
 var settingsLoaded = false;
 var settings = {};
 fetch("../config/settings.json").then(response => response.json()).then(data => {
