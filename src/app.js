@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, ipcRenderer } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
 const open = require('open');
@@ -206,3 +206,79 @@ function getApps() {
   return appList;
 }
 const appList = getApps();
+
+console.log("valid apps found\nsearching for files...");
+
+//keep list of files
+const filesForSearch = [];
+const filesHash = {};
+function getFiles() {
+  const initDirs = [
+    settings['search-files']['starting-dirs']['desktop'] ? path.join(process.env.USERPROFILE, 'Desktop') : null,
+    settings['search-files']['starting-dirs']['documents'] ? path.join(process.env.USERPROFILE, 'Documents') : null,
+    settings['search-files']['starting-dirs']['downloads'] ? path.join(process.env.USERPROFILE, 'Downloads') : null,
+    settings['search-files']['starting-dirs']['pictures'] ? path.join(process.env.USERPROFILE, 'Pictures') : null,
+    settings['search-files']['starting-dirs']['music'] ? path.join(process.env.USERPROFILE, 'Music') : null,
+    settings['search-files']['starting-dirs']['videos'] ? path.join(process.env.USERPROFILE, 'Videos') : null,
+  ];
+  for (const dir of initDirs) {
+    if (dir) {
+      getFilesFor(dir, 1, settings['search-files']['initial-max-depth']);
+    }
+  }
+}
+function checkPermissionsSync(filePath) {
+  try {
+    fs.accessSync(filePath, fs.constants.W_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function getFilesFor(dir, depth, maxDepth) {
+  if (depth > maxDepth) return;
+  console.log(depth);
+  depth++;
+  if (fs.existsSync(dir)) {
+    let files = fs.readdirSync(dir);
+    for (const file of files) {
+      const filePath = path.join(dir, file);
+      if (fs.statSync(filePath).isDirectory() && !file.includes(".") && checkPermissionsSync(filePath) && !settings['search-files']['invalid-directories'].includes(file)) {
+        getFilesFor(filePath, depth, maxDepth);
+        filesHash[file] = filePath;
+        filesForSearch.push(file);
+      } else if (file.endsWith("." + settings['search-files']['invalid-file-extensions'].join("."))) {
+      } else if (fs.statSync(filePath).isFile()) {
+        console.log(fs.statSync(filePath).isDirectory() , !file.includes(".") , checkPermissionsSync(filePath) , file != "node_modules");
+        filesHash[file] = filePath;
+        filesForSearch.push(file);
+      }
+    }
+  }
+  console.log(filesForSearch);
+}
+getFiles();
+
+ipcMain.on('search-files', (event, query) => {
+  closest = findBestMatch(query, filesForSearch);
+  if (closest.score > 0.5 || true) {
+    console.log(closest);
+    event.reply('open-file', { ok: true, file: filesHash[closest.best] });
+  } else {
+    console.log(closest);
+    event.reply('open-file', { ok: false, file: null });
+  }
+});
+
+ipcMain.on('search-open-files', (event, query) => {
+  closest = findBestMatch(query, filesForSearch);
+  if (closest.score > 0.5 || true) {
+    console.log(closest);
+    event.reply('open-file', { ok: true, file: filesHash[closest.best] });
+  } else {
+    console.log(closest);
+    event.reply('open-file', { ok: false, file: null });
+  }
+  exec(`start "" "${filesHash[closest.best]}"`);
+});

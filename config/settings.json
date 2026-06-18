@@ -13,10 +13,31 @@
         "height": 200
     },
     "summon": {
-        "summon-on-mouse": false,
+        "summon-on-mouse": true,
         "change-screen": true,
         "vertical-offset": 50
     },
     "tool-declorable": true,
-    "tool-decloration-char": "@"
+    "tool-decloration-char": "@",
+    "search-files": {
+        "enabled": true,
+        "starting-dirs": {
+            "desktop": true,
+            "documents": true,
+            "downloads": true,
+            "pictures": true,
+            "music": true,
+            "videos": true
+        },
+        "invalid-file-extensions": [
+            ".gitignore",
+            ".git",
+            ".DS_Store"
+        ],
+        "invalid-directories": [
+            "node_modules"
+        ],
+        "initial-max-depth": 3
+    },
+    "defult-extention": "wiki-search"
 }

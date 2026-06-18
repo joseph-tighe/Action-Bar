@@ -57,7 +57,7 @@ function userSelection() {
 }
 function openApp(app) {
   resultEl = document.getElementsByClassName('result')[0];
-  resultEl.textContent = `Openning ${app}`;
+  resultEl.textContent = `Opening ${app}`;
   const img = document.createElement('img');
   img.src = icons['app'];
   img.alt = '';

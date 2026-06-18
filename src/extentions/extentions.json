@@ -30,5 +30,13 @@
         "active": true,
         "RunFunction": "RunTimer",
         "CheckFunction": null
+    },
+    "files": {
+        "file": "files.js",
+        "name": "files",
+        "imageUrl": "../static/images/app.svg",
+        "active": true,
+        "RunFunction": "RunFile",
+        "CheckFunction": null
     }
 }
