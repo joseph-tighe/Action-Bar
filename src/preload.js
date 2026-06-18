@@ -56,6 +56,12 @@ function userSelection() {
   return 'nothing';
 }
 function openApp(app) {
+  resultEl = document.getElementsByClassName('result')[0];
+  resultEl.textContent = `Openning ${app}`;
+  const img = document.createElement('img');
+  img.src = icons['app'];
+  img.alt = '';
+  resultEl.appendChild(img);
   ipcRenderer.send('open-app', app);
 }
 
@@ -354,6 +360,7 @@ function getCurrentPosition(timeout = 10000) {
 
 var icons = {
   'search': '../static/images/wiki.svg',
+  'app': '../static/images/app.svg',
 };
 var features = [];
 var runFunctions = [];
