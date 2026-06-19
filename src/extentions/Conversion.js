@@ -244,7 +244,14 @@ function formatUnit(unit) {
 }
 function RunConverter() {
   if (canConvert() !== 'nothing') {
-    valuesString = getSearch().value;
+    var value;
+    if (getSearch().value.includes(settings['tool-decloration-char'])) {
+      values = getSearch().value.split(" ");
+      values.shift();
+      valuesString = values.join(" ");
+    } else {
+      valuesString = getSearch().value;
+    }
     values = valuesString.split("to");
     if (values.length === 2) {
       var from = values[0];

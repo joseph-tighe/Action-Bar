@@ -10,11 +10,13 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
 });
 function runOpen(enter) {
     var appOrFile;
-    if (getSearch().value.includes("@")) {
-        appOrFile = getSearch().value.split(" ")[1];
+    if (getSearch().value.includes(settings['tool-decloration-char'])) {
+        values = getSearch().value.split(" ");
+        values.shift();
+        appOrFile = values.join(" ");
     } else {
         appOrFile = getSearch().value;
-    }    
+    }
     if (appOrFile.length < 1 || (appOrFile == lastSearch && !enter)) return;
     lastSearch = appOrFile;
     if (enter) {

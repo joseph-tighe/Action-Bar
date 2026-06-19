@@ -127,24 +127,6 @@ function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
 
-function RunSearch() {
-  val = getSearch().value;
-  fetchAsync(getSearch().value.replaceAll(" ", "+")).then(data => {
-    if (data.pages.length > 0 && val == getSearch().value) {
-      const resultEl = document.getElementsByClassName('result')[0];
-      for (const page of data.pages) {
-        if (page.description != "Topics referred to by the same term") {
-          resultEl.textContent = `${page.description}`;
-          break;
-        }
-      }
-      const img = document.createElement('img');
-      img.src = icons['search'];
-      img.alt = '';
-      resultEl.appendChild(img);
-    }
-  });
-}
 function getCurrentPosition(timeout = 10000) {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
@@ -157,9 +139,7 @@ function getCurrentPosition(timeout = 10000) {
   });
 }
 
-
 var icons = {
-  'search': '../static/images/wiki.svg',
   'app': '../static/images/app.svg',
 };
 var features = [];

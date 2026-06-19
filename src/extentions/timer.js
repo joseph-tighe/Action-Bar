@@ -1,9 +1,11 @@
 function RunTimer(enter) {
-  let value = getSearch().value || "";
-  if (value[0] === settings['tool-decloration-char']) {
-    const parts = value.split("timer");
-    if (parts.length < 2) return 'nothing';
-    value = "-" + parts[1];
+  var value;
+  if (getSearch().value.includes(settings['tool-decloration-char'])) {
+    values = getSearch().value.split(" ");
+    values.shift();
+    value = values.join(" ");
+  } else {
+    value = getSearch().value;
   }
   let numbers = [""];
   for (const ch of value) {

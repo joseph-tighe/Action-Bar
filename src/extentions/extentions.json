@@ -38,5 +38,13 @@
         "active": true,
         "RunFunction": "runOpen",
         "CheckFunction": null
+    },
+    "wiki": {
+        "file": "wiki.js",
+        "name": "wiki",
+        "imageUrl": "../static/images/wiki.svg",
+        "active": true,
+        "RunFunction": "RunSearch",
+        "CheckFunction": null
     }
 }
