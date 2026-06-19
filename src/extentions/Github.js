@@ -68,5 +68,5 @@ function HandleGithub(enter) {
         url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
         ipcRenderer.send('open-url', url);
     }
-  }, 500);
+  }, 400);
 }

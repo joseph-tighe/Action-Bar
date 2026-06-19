@@ -54,5 +54,21 @@
         "active": true,
         "RunFunction": "HandleGithub",
         "CheckFunction": null
+    },
+    "ddg": {
+        "file": "DuckSearch.js",
+        "name": "ddg",
+        "imageUrl": "../static/images/DDG.svg",
+        "active": true,
+        "RunFunction": "RunSearch",
+        "CheckFunction": null
+    },
+    "music": {
+        "file": "youtubeMusic.js",
+        "name": "music",
+        "imageUrl": "../static/images/music.svg",
+        "active": true,
+        "RunFunction": "RunSearch",
+        "CheckFunction": null
     }
 }
