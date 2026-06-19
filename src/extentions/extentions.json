@@ -31,12 +31,12 @@
         "RunFunction": "RunTimer",
         "CheckFunction": null
     },
-    "files": {
-        "file": "files.js",
-        "name": "files",
+    "open": {
+        "file": "open.js",
+        "name": "open",
         "imageUrl": "../static/images/app.svg",
         "active": true,
-        "RunFunction": "RunFile",
+        "RunFunction": "runOpen",
         "CheckFunction": null
     }
 }

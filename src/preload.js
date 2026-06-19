@@ -55,15 +55,6 @@ function userSelection() {
   }
   return 'nothing';
 }
-function openApp(app) {
-  resultEl = document.getElementsByClassName('result')[0];
-  resultEl.textContent = `Opening ${app}`;
-  const img = document.createElement('img');
-  img.src = icons['app'];
-  img.alt = '';
-  resultEl.appendChild(img);
-  ipcRenderer.send('open-app', app);
-}
 
 getSearch().addEventListener('keyup', (e) => {
   if (e.key) {
@@ -94,9 +85,11 @@ getSearch().addEventListener('keyup', (e) => {
     if (!hasGone) {
       if (getSearch().value.length > 0) {
         if (e.key === 'Enter') {
-          openApp(getSearch().value);
+          runFunctions[features.indexOf(settings['defult-extention-onEnter'])](true);
         } else {
-          RunSearch();
+          console.log(settings['defult-extention'], features);
+          console.log(features.indexOf(settings['defult-extention']));
+          runFunctions[features.indexOf(settings['defult-extention'])](false);
         }
       } else {
         const resultEl = document.getElementsByClassName('result')[0];
@@ -367,6 +360,7 @@ var runFunctions = [];
 var checkFunctions = [];
 (async () => {
 files = await fetch('extentions/extentions.json').then(response => response.json());
+console.log(files);
 for (const file of Object.keys(files)) {
   let data = files[file];
   if (data.active) {

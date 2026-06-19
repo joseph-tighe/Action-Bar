@@ -13,7 +13,7 @@
         "height": 200
     },
     "summon": {
-        "summon-on-mouse": true,
+        "summon-on-mouse": false,
         "change-screen": true,
         "vertical-offset": 50
     },
@@ -39,5 +39,6 @@
         ],
         "initial-max-depth": 3
     },
-    "defult-extention": "wiki-search"
+    "defult-extention": "open",
+    "defult-extention-onEnter": "open"
 }

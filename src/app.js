@@ -109,29 +109,6 @@ ipcMain.on('show-notification', (event, { title, body }) => {
 ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
 });
-ipcMain.on('open-app', (event, appIdentifier) => {
-    try {
-    if (process.platform === 'darwin') {
-      open('', {app: {name: appIdentifier}}); // appIdentifier: 'TextEdit'
-    } else if (process.platform === 'win32') {
-      // On Windows open() prefers files; use cmd start to open an app by executable name:
-      appNames = appList.map(app => app.name);
-      closest = findBestMatch(appIdentifier, appNames);
-      if (closest.score > 0.5) {
-        console.log(closest);
-        exec(`start "" "${appList[closest.index].path}"`);
-        return;
-      }
-      exec(`start "" "${appIdentifier}"`);
-    } else {
-      // Linux: try to run executable name
-      const { spawn } = require('child_process');
-      spawn(appIdentifier, [], { detached: true, stdio: 'ignore' }).unref();
-    }
-  } catch (err) {
-    console.error('Failed to open app', err);
-  }
-});
 function levenshteinOptimized(a, b) {
   if (a === b) return 0;
   if (a.length > b.length) [a, b] = [b, a];
@@ -178,7 +155,6 @@ function findBestMatch(query, candidates) {
   return { best: candidates[bestIdx], index: bestIdx, score: bestScore };
 }
 
-console.log("searching for valid apps...");
 function getApps() {
   // look through start menu
   const desktop = path.join(process.env.USERPROFILE, 'Desktop');
@@ -202,7 +178,6 @@ function getApps() {
       }
     }
   }
-  console.log(appList);
   return appList;
 }
 const appList = getApps();
@@ -238,7 +213,6 @@ function checkPermissionsSync(filePath) {
 
 async function getFilesFor(dir, depth, maxDepth) {
   if (depth > maxDepth) return;
-  console.log(depth);
   depth++;
   if (fs.existsSync(dir)) {
     let files = fs.readdirSync(dir);
@@ -260,25 +234,42 @@ async function getFilesFor(dir, depth, maxDepth) {
 }
 getFiles();
 
-ipcMain.on('search-files', (event, query) => {
-  closest = findBestMatch(query, filesForSearch);
-  if (closest.score > 0.5 || true) {
-    console.log(closest);
-    event.reply('open-file', { ok: true, file: filesHash[closest.best] });
-  } else {
-    console.log(closest);
-    event.reply('open-file', { ok: false, file: null });
+ipcMain.on('search-apps/files', (event, query) => {
+  try {
+    if (process.platform === 'win32') {
+      // On Windows open() prefers files; use cmd start to open an app by executable name:
+      appNames = appList.map(app => app.name);
+      closest = findBestMatch(query, appNames);
+      if (closest.score > 0.5) {
+        event.reply('open-file', { ok: true, file: closest['best'], action: "Found", type: "app" });
+        return;
+      } else {
+        closest = findBestMatch(query, filesForSearch);
+        event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Found", type: "file" });
+      }
+    }
+  } catch (err) {
+    console.error('Failed to open app', err);
   }
 });
 
-ipcMain.on('search-open-files', (event, query) => {
-  closest = findBestMatch(query, filesForSearch);
-  if (closest.score > 0.5 || true) {
-    console.log(closest);
-    event.reply('open-file', { ok: true, file: filesHash[closest.best] });
-  } else {
-    console.log(closest);
-    event.reply('open-file', { ok: false, file: null });
+ipcMain.on('search-open-apps/files', (event, query) => {
+  try {
+    if (process.platform === 'win32') {
+      // On Windows open() prefers files; use cmd start to open an app by executable name:
+      appNames = appList.map(app => app.name);
+      closest = findBestMatch(query, appNames);
+      if (closest.score > 0.5) {
+        event.reply('open-file', { ok: true, file: closest['best'], action: "Open", type: "app" });
+        exec(`start "" "${appList[closest.index].path}"`);
+        return;
+      } else {
+        closest = findBestMatch(query, filesForSearch);
+        event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Open", type: "file" });
+      }
+      exec(`start "" "${filesHash[closest.best]}"`);
+    }
+  } catch (err) {
+    console.error('Failed to open app', err);
   }
-  exec(`start "" "${filesHash[closest.best]}"`);
 });
