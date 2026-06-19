@@ -152,6 +152,7 @@ for (const file of Object.keys(files)) {
   let data = files[file];
   if (data.active) {
     let code = await fetch(`extentions/${data.file}`).then(response => response.text());
+    console.log(code);
     eval(code); //make functions
     let feature = eval(`(() => {
       return {

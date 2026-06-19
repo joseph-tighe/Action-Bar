@@ -46,5 +46,13 @@
         "active": true,
         "RunFunction": "RunSearch",
         "CheckFunction": null
+    },
+    "github": {
+        "file": "Github.js",
+        "name": "github",
+        "imageUrl": "../static/images/github.svg",
+        "active": true,
+        "RunFunction": "HandleGithub",
+        "CheckFunction": null
     }
 }
