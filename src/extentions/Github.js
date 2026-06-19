@@ -55,12 +55,12 @@ function HandleGithub(enter) {
     } else {
         val2 = getSearch().value;
     }
-    if (val != val2) return;
+    if (val != val2.replaceAll(" ", "+")) return;
     lastSearches[val] = response;
     const resultEl = document.getElementsByClassName('result')[0];
     resultEl.textContent = rateLimit ? "Rate limit exceeded please try again in a bit" : response == null ? "No results" : `Press enter to open ${response.full_name}`;
     const img = document.createElement('img');
-    img.src = icons['weather'];
+    img.src = icons['github'];
     img.alt = '';
     resultEl.appendChild(img);
     if (enter) {
