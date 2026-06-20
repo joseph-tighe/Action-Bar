@@ -146,7 +146,7 @@ var icons = {
 var features = [];
 var runFunctions = [];
 var checkFunctions = [];
-function autocomplete(enter) {
+function autocomplete(key) {
   const search = getSearch();
   var feat = "";
   for (const feature of features) {
@@ -161,7 +161,7 @@ function autocomplete(enter) {
   img.src = "";
   img.alt = '';
   resultEl.appendChild(img);
-  if (enter) {
+  if (key === 'Enter' || key === 'Tab') {
     document.getElementById('search').value = `@${feat}`;
   }
 }
