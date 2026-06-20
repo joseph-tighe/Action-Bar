@@ -40,7 +40,7 @@ function RunSearch(enter) {
             const resultEl = document.getElementsByClassName('result')[0];
             resultEl.textContent = `Press enter to open ${data.recordings[0].title}`;// - ${data.recordings[0]["artist-credit"][0].name}
             const img = document.createElement('img');
-            img.src = icons['youtube'];
+            img.src = icons['music'];
             img.alt = '';
             resultEl.appendChild(img);
             if (enter) {
