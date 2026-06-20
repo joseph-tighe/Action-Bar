@@ -128,18 +128,6 @@ function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
 
-function getCurrentPosition(timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
-    const opts = { enableHighAccuracy: true, timeout, maximumAge: 0 };
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-      err => reject(err),
-      opts
-    );
-  });
-}
-
 var icons = {
   'app': '../static/images/app.svg',
 };
