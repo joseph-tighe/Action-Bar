@@ -42,6 +42,8 @@ body {
     color: var(--foreground);
     border-bottom-left-radius: var(--borderradius);
     border-bottom-right-radius: var(--borderradius);
+    display: flex;
+    flex-direction: row;
 }
 .result {
     width: 100%;
@@ -62,7 +64,8 @@ body {
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
+    width: 20%;
 }
 #results .found-image-wrapper img {
-    max-width: 80%;
+    width: 100%;
 }

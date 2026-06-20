@@ -9,6 +9,7 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
     resultsEl = document.getElementById('results');
     if (imageExtensions.includes(file.file.split(".").pop())) {
+        resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
         const imgWrapper = document.createElement('div');
         const img = document.createElement('img');
         imgWrapper.className = "found-image-wrapper";

@@ -187,8 +187,7 @@ console.log("valid apps found\nsearching for files...");
 //keep list of files
 const filesForSearch = [];
 const filesHash = {};
-function getFiles() {
-  const initDirs = [
+var initDirs = [
     settings['search-files']['starting-dirs']['desktop'] ? path.join(process.env.USERPROFILE, 'Desktop') : null,
     settings['search-files']['starting-dirs']['documents'] ? path.join(process.env.USERPROFILE, 'Documents') : null,
     settings['search-files']['starting-dirs']['downloads'] ? path.join(process.env.USERPROFILE, 'Downloads') : null,
@@ -196,6 +195,8 @@ function getFiles() {
     settings['search-files']['starting-dirs']['music'] ? path.join(process.env.USERPROFILE, 'Music') : null,
     settings['search-files']['starting-dirs']['videos'] ? path.join(process.env.USERPROFILE, 'Videos') : null,
   ];
+function getFiles() {
+  
   for (const dir of initDirs) {
     if (dir) {
       getFilesFor(dir, 1, settings['search-files']['initial-max-depth']);
@@ -233,17 +234,33 @@ async function getFilesFor(dir, depth, maxDepth) {
 getFiles();
 function findBestMatchFiles(query, candidates) {
   var cands = candidates;
-  var foundFolder = null;
   query = query.replaceAll("\\", "/");
   if (query.includes("/")) {
+    for (i = 0; i < query.split("/").length - 1; i++) {
+      folder = query.split("/")[i];
+      var foundFolder = findBestMatch(folder, cands);
+      searchThrough = true;
+      for (initFile of initDirs) {
+        if (filesHash[foundFolder.best] == initFile) {
+          searchThrough = false;
+          break;
+        }
+      }
+      if (searchThrough) {
+        initDirs.push(filesHash[foundFolder.best]);
+        console.log(initDirs);
+        getFilesFor(filesHash[foundFolder.best], 1, settings['search-files']['initial-max-depth']);
+      }
+    }
+    var foundFolder = null;
     for (folder of query.split("/")) {
       foundFolder = findBestMatch(folder, cands);
       cands = cands.filter(c => filesHash[c].includes(foundFolder.best));
     }
+    return {best: foundFolder.best, index: candidates.indexOf(foundFolder), score: foundFolder.score};
   } else {
     return findBestMatch(query, candidates);
   }
-  return {best: foundFolder.best, index: candidates.indexOf(foundFolder), score: foundFolder.score};
 }
 ipcMain.on('search-apps/files', (event, query) => {
   try {
