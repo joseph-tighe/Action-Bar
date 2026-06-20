@@ -25,7 +25,7 @@ function RunCalculator(key) {
   if (canCalculate()) {
     equation = getSearch().value;
     setNext = false;
-    if (equation.includes("=") || (e.key === 'Enter' || e.key === 'Tab')) {
+    if (equation.includes("=") || (key === 'Enter' || key === 'Tab')) {
       equation = equation.replace("=", "");
       setNext = true;
     }

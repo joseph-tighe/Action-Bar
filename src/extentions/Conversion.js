@@ -272,6 +272,9 @@ function RunConverter(key) {
     img.src = icons['converter'];
     img.alt = '';
     resultEl.appendChild(img);
+    if (key === 'Tab') {
+      getSearch().value = result + toUnit;
+    }
   }
 }
 
