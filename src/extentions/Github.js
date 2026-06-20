@@ -69,3 +69,6 @@ function HandleGithub(key) {
     }
   }, 400);
 }
+function copyGithub() {
+  navigator.clipboard.writeText(document.getElementsByClassName('result')[0].textContent.split(" ").splice(4));
+}

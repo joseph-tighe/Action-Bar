@@ -51,4 +51,6 @@ function runOpen(key) {
         ipcRenderer.send('search-apps/files', appOrFile);
     }
 }
-    
+function copyOpen() {
+  navigator.clipboard.writeText(document.getElementsByClassName('result')[0].textContent.split(" ").splice(2));
+}

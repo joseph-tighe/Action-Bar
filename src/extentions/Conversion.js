@@ -267,7 +267,7 @@ function RunConverter(key) {
     var conversion = conversions[fromUnit + "-" + toUnit];
     const resultEl = document.getElementsByClassName('result')[0];
     result = parseFloat(FromNumber) * conversion;
-    resultEl.textContent = result; // for text part
+    resultEl.textContent = result + toUnit; // for text part
     const img = document.createElement('img');
     img.src = icons['converter'];
     img.alt = '';
@@ -281,7 +281,7 @@ function RunConverter(key) {
 function canConvert() {
   s = getSearch().value;
   if (s.length === 0) return false;
-  if (s.includes("to")) {
+  if (s.includes(" to ")) {
     return 'converter';
   }
   return false;

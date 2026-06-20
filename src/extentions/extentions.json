@@ -37,7 +37,8 @@
         "imageUrl": "../static/images/app.svg",
         "active": true,
         "RunFunction": "runOpen",
-        "CheckFunction": null
+        "CheckFunction": null,
+        "copyFunction": "copyOpen"
     },
     "wiki": {
         "file": "wiki.js",
@@ -53,7 +54,8 @@
         "imageUrl": "../static/images/github.svg",
         "active": true,
         "RunFunction": "HandleGithub",
-        "CheckFunction": null
+        "CheckFunction": null,
+        "copyFunction": "copyGithub"
     },
     "ddg": {
         "file": "DuckSearch.js",
@@ -70,5 +72,14 @@
         "active": true,
         "RunFunction": "RunSearch",
         "CheckFunction": null
+    },
+    "colorPicker": {
+        "file": "colorPicker.js",
+        "name": "colorPicker",
+        "imageUrl": "../static/images/colorPicker.svg",
+        "active": true,
+        "RunFunction": "handleColorPicker",
+        "CheckFunction": null,
+        "copyFunction": "copyColorPicker"
     }
 }
