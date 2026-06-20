@@ -43,15 +43,17 @@ body {
     border-bottom-left-radius: var(--borderradius);
     border-bottom-right-radius: var(--borderradius);
     display: flex;
-    flex-direction: row;
+    flex-direction: row-reverse;
+    justify-content: left;
+    align-items: center;
 }
 .result {
     width: 100%;
     padding: 5px;
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: row-reverse;
     align-items: center;
+    justify-content: left;
 }
 .result img {
     justify-self: right;

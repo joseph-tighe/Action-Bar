@@ -301,3 +301,6 @@ ipcMain.on('search-open-apps/files', (event, query) => {
     console.error('Failed to open app', err);
   }
 });
+ipcMain.on('close-window', (event) => {
+  toggleWindowVisibility();
+});
