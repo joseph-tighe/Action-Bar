@@ -52,6 +52,7 @@ function userSelection() {
     if (value.split(" ")[0].includes("quit")) {
       return 'quit';
     }
+    return 'autocomplete';
   }
   return 'nothing';
 }
@@ -71,6 +72,9 @@ getSearch().addEventListener('keyup', (e) => {
       if (item === 'quit') {
         Quit();
         hasGone = true;
+      } else if (item === 'autocomplete') {
+        autocomplete(e.key === 'Enter' || e.key === 'Tab');
+        hasGone = true;
       }
     }
     if (!hasGone) {
@@ -87,8 +91,6 @@ getSearch().addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
           runFunctions[features.indexOf(settings['defult-extention-onEnter'])](true);
         } else {
-          console.log(settings['defult-extention'], features);
-          console.log(features.indexOf(settings['defult-extention']));
           runFunctions[features.indexOf(settings['defult-extention'])](false);
         }
       } else {
@@ -106,7 +108,6 @@ setTimeout(async () => {
   while (!settingsLoaded) {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  console.log(settings);
   document.documentElement.style.setProperty('--background', settings['style']['background']);
   document.documentElement.style.setProperty('--foreground', settings['style']['foreground']);
   document.documentElement.style.setProperty('--borderradius', settings['style']['borderradius']);
@@ -145,14 +146,31 @@ var icons = {
 var features = [];
 var runFunctions = [];
 var checkFunctions = [];
+function autocomplete(enter) {
+  const search = getSearch();
+  var feat = "";
+  for (const feature of features) {
+    if (("@"+feature.toLowerCase()).includes(search.value.toLowerCase())) {
+      feat = feature;
+      break;
+    }
+  }
+  const resultEl = document.getElementsByClassName('result')[0];
+  resultEl.textContent = feat == "" ? "No results" : `@${feat}`;
+  const img = document.createElement('img');
+  img.src = icons['app'];
+  img.alt = '';
+  resultEl.appendChild(img);
+  if (enter) {
+    document.getElementById('search').value = `@${feat}`;
+  }
+}
 (async () => {
 files = await fetch('extentions/extentions.json').then(response => response.json());
-console.log(files);
 for (const file of Object.keys(files)) {
   let data = files[file];
   if (data.active) {
     let code = await fetch(`extentions/${data.file}`).then(response => response.text());
-    console.log(code);
     eval(code); //make functions
     let feature = eval(`(() => {
       return {
@@ -167,31 +185,3 @@ for (const file of Object.keys(files)) {
   }
 }
 })();
-
-async function doFetch(q) {
-  let url = "https://en.wikipedia.org/w/rest.php/v1/search/page";
-  let headers = {'Api-User-Agent': 'MediaWiki REST API docs examples/0.1 (https://www.mediawiki.org/wiki/API_talk:REST_API)'}
-  let params = {
-    'q': q,
-    'limit': '20'
-  };
-  let query = Object.keys(params)
-             .map(k => k + '=' + encodeURIComponent(params[k]))
-             .join('&');
-  url = url + '?' + query;
-
-  const rsp = await fetch(url, headers);
-  const data = await rsp.json();
-  return data;
-}
-
-async function fetchAsync(q)
-{
-  try {
-    let result = await doFetch(q);
-    return result;
-  } catch( err ) {
-    console.error( err.message );
-  }
-  return "";
-}
