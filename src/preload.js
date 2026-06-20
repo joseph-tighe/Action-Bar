@@ -158,7 +158,7 @@ function autocomplete(enter) {
   const resultEl = document.getElementsByClassName('result')[0];
   resultEl.textContent = feat == "" ? "No results" : `@${feat}`;
   const img = document.createElement('img');
-  img.src = icons['app'];
+  img.src = "";
   img.alt = '';
   resultEl.appendChild(img);
   if (enter) {

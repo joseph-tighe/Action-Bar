@@ -233,7 +233,26 @@ async function getFilesFor(dir, depth, maxDepth) {
   console.log(filesForSearch);
 }
 getFiles();
-
+function findBestMatchFiles(query, candidates) {
+  var cands = candidates;
+  var foundFolder = null;
+  query = query.replaceAll("\\", "/");
+  if (query.includes("/")) {
+    console.log(query);
+    for (folder of query.split("/")) {
+      console.log(folder);
+      foundFolder = findBestMatch(folder, cands);
+      console.log(foundFolder);
+      console.log(cands.length);
+      
+      cands = cands.filter(c => filesHash[c].includes(foundFolder.best));
+      console.log(cands.length);
+    }
+  } else {
+    return findBestMatch(query, candidates);
+  }
+  return {best: foundFolder.best, index: candidates.indexOf(foundFolder), score: foundFolder.score};
+}
 ipcMain.on('search-apps/files', (event, query) => {
   try {
     if (process.platform === 'win32') {
@@ -244,7 +263,7 @@ ipcMain.on('search-apps/files', (event, query) => {
         event.reply('open-file', { ok: true, file: closest['best'], action: "Found", type: "app" });
         return;
       } else {
-        closest = findBestMatch(query, filesForSearch);
+        closest =   findBestMatchFiles(query, filesForSearch);
         event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Found", type: "file" });
       }
     }
@@ -264,7 +283,7 @@ ipcMain.on('search-open-apps/files', (event, query) => {
         exec(`start "" "${appList[closest.index].path}"`);
         return;
       } else {
-        closest = findBestMatch(query, filesForSearch);
+        closest = findBestMatchFiles(query, filesForSearch);
         event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Open", type: "file" });
       }
       exec(`start "" "${filesHash[closest.best]}"`);

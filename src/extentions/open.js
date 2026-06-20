@@ -1,12 +1,32 @@
 var lastSearch = "";
 ipcRenderer.on('open-file', (event, file, action, type) => {
-    console.log(action, type, file);
     resultEl = document.getElementsByClassName('result')[0];
     resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
     const img = document.createElement('img');
     img.src = icons['app'];
     img.alt = '';
     resultEl.appendChild(img);
+    imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
+    resultsEl = document.getElementById('results');
+    if (imageExtensions.includes(file.file.split(".").pop())) {
+        const imgWrapper = document.createElement('div');
+        const img = document.createElement('img');
+        imgWrapper.className = "found-image-wrapper";
+        imgWrapper.appendChild(img);
+        document.getElementById('results').appendChild(imgWrapper);
+        img.src = file.file;
+        img.className = "found-image";
+        img.alt = '';
+        document.getElementsByClassName('found-image-wrapper')[0].appendChild(img);
+        var currentSearch = getSearch().value;
+        function func() {
+            if (getSearch().value != currentSearch) {
+                resultsEl.removeChild(document.getElementsByClassName('found-image-wrapper')[0]);
+                getSearch().removeEventListener("keyup",func);
+            }
+        }
+        getSearch().addEventListener("keyup", func)
+    }
 });
 function runOpen(enter) {
     var appOrFile;
