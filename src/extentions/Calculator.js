@@ -21,11 +21,11 @@ function canCalculate() {
   return isNumericChar;
 }
 
-function RunCalculator(enter) {
+function RunCalculator(key) {
   if (canCalculate()) {
     equation = getSearch().value;
     setNext = false;
-    if (equation.includes("=") || enter) {
+    if (equation.includes("=") || (e.key === 'Enter' || e.key === 'Tab')) {
       equation = equation.replace("=", "");
       setNext = true;
     }

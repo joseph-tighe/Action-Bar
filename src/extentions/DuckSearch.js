@@ -18,7 +18,7 @@ async function fetchAsyncDDG(q)
   return "";
 }
 
-function RunSearch() {
+function RunSearch(key) {
   var val;
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");

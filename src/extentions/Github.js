@@ -1,5 +1,5 @@
 lastSearches = {};
-function HandleGithub(enter) {
+function HandleGithub(key) {
   var val;
   //set Image
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
@@ -63,7 +63,7 @@ function HandleGithub(enter) {
     img.src = icons['github'];
     img.alt = '';
     resultEl.appendChild(img);
-    if (enter) {
+    if (key === 'Enter') {
         let location = val;
         url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
         ipcRenderer.send('open-url', url);

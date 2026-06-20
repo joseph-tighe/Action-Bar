@@ -1,4 +1,4 @@
-function RunTimer(enter) {
+function RunTimer(key) {
   var value;
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");
@@ -25,7 +25,7 @@ function RunTimer(enter) {
   img.src = icons['timer'];
   img.alt = '';
   resultEl.appendChild(img);
-  if (!enter || isNaN(time) || time < 0 || time > 86400) return 'nothing';
+  if (!(key === 'Enter') || isNaN(time) || time < 0 || time > 86400) return 'nothing';
 
   ipcRenderer.send('show-notification', { title: 'Timer', body: 'Started timer' });
   setTimeout(() => {

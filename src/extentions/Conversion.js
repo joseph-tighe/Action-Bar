@@ -242,7 +242,7 @@ function formatUnit(unit) {
   }
   return unit;
 }
-function RunConverter() {
+function RunConverter(key) {
   if (canConvert() !== 'nothing') {
     var value;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {

@@ -63,7 +63,7 @@ getSearch().addEventListener('keyup', (e) => {
     hasGone = false;
     for (let i = 0; i < features.length; i++) {
       if (item === features[i]) {
-        runFunctions[i](e.key === 'Enter');
+        runFunctions[i](e.key);
         hasGone = true;
         break;
       }
@@ -73,14 +73,14 @@ getSearch().addEventListener('keyup', (e) => {
         Quit();
         hasGone = true;
       } else if (item === 'autocomplete') {
-        autocomplete(e.key === 'Enter' || e.key === 'Tab');
+        autocomplete(e.key);
         hasGone = true;
       }
     }
     if (!hasGone) {
       for (let i = 0; i < features.length; i++) {
         if (checkFunctions[i] != null && checkFunctions[i]()) {
-          runFunctions[i](e.key === 'Enter');
+          runFunctions[i](e.key);
           hasGone = true;
           break;
         }
@@ -89,9 +89,9 @@ getSearch().addEventListener('keyup', (e) => {
     if (!hasGone) {
       if (getSearch().value.length > 0) {
         if (e.key === 'Enter') {
-          runFunctions[features.indexOf(settings['defult-extention-onEnter'])](true);
+          runFunctions[features.indexOf(settings['defult-extention-onEnter'])](e.key);
         } else {
-          runFunctions[features.indexOf(settings['defult-extention'])](false);
+          runFunctions[features.indexOf(settings['defult-extention'])](e.key);
         }
       } else {
         const resultEl = document.getElementsByClassName('result')[0];

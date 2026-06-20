@@ -1,4 +1,4 @@
-function RunWeather(enter) {
+function RunWeather(key) {
   var val;
   //set Image
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
@@ -14,7 +14,7 @@ function RunWeather(enter) {
   img.src = icons['weather'];
   img.alt = '';
   resultEl.appendChild(img);
-  if (enter) {
+  if (key === 'Enter') {
     let location = val;
     url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
     ipcRenderer.send('open-url', url);

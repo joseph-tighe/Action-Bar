@@ -17,7 +17,7 @@ async function fetchAsyncMusic(q)
     return "";
 }
 
-function RunSearch(enter) {
+function RunSearch(key) {
     var val;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
         values = getSearch().value.split(" ");
@@ -43,7 +43,9 @@ function RunSearch(enter) {
             img.src = icons['music'];
             img.alt = '';
             resultEl.appendChild(img);
-            if (enter) {
+            if (key === 'Tab') {
+                getSearch().value = data.recordings[0].title;
+            } else if (key === 'Enter') {
                 let location = val;
                 url = `https://music.youtube.com/search?q=${data.recordings[0].title}`;
                 ipcRenderer.send('open-url', url);

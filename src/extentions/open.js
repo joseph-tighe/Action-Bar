@@ -28,7 +28,7 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
         getSearch().addEventListener("keyup", func)
     }
 });
-function runOpen(enter) {
+function runOpen(key) {
     var appOrFile;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
         values = getSearch().value.split(" ");
@@ -37,9 +37,9 @@ function runOpen(enter) {
     } else {
         appOrFile = getSearch().value;
     }
-    if (appOrFile.length < 1 || (appOrFile == lastSearch && !enter)) return;
+    if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) return;
     lastSearch = appOrFile;
-    if (enter) {
+    if (key === 'Enter') {
         ipcRenderer.send('search-open-apps/files', appOrFile);
     } else {
         ipcRenderer.send('search-apps/files', appOrFile);
