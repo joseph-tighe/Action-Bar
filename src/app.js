@@ -48,7 +48,7 @@ app.whenReady().then(() => {
     mainWindow.hide();
   })
   mainWindow.hide();
-  const ret = globalShortcut.register('Alt+Z', () => {
+  const ret = globalShortcut.register(settings['open-shortcut'], () => {
     toggleWindowVisibility()
   })
   mainWindow.on('blur', () => {
@@ -62,12 +62,12 @@ app.whenReady().then(() => {
   }
 
   // Check whether a shortcut is registered.
-  console.log(globalShortcut.isRegistered('Alt+Z') ? 'GLobal shortcut is registered' : 'GLobal shortcut failed registration')
+  console.log(globalShortcut.isRegistered(settings['open-shortcut']) ? 'GLobal shortcut is registered' : 'GLobal shortcut failed registration')
 })
 
 app.on('will-quit', () => {
   // Unregister a shortcut.
-  globalShortcut.unregister('ALt+Z')
+  globalShortcut.unregister(settings['open-shortcut'])
 
   // Unregister all shortcuts.
   globalShortcut.unregisterAll()
