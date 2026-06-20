@@ -45,7 +45,6 @@ function runOpen(key) {
     }
     if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) return;
     lastSearch = appOrFile;
-    keyPressed = key;
     if (key === 'Enter') {
         ipcRenderer.send('search-open-apps/files', appOrFile);
     } else {
