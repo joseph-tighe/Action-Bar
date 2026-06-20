@@ -236,6 +236,19 @@ function findBestMatchFiles(query, candidates) {
   var cands = candidates;
   query = query.replaceAll("\\", "/");
   if (query.includes("/")) {
+    //replace C:\yfdsgu\fius with fius\xyz
+    if (query.includes("C:")) {
+      for (i = 0; i < query.split("/").length - 1; i++) {
+        folder = query.split("/")[i];
+        for (initFile of initDirs) {
+          if (filesHash[folder] == initFile) {
+            query = query.split("/").splice(i).join("/");
+            break;
+          }
+        }
+      }
+      console.log(query);
+    }
     for (i = 0; i < query.split("/").length - 1; i++) {
       folder = query.split("/")[i];
       var foundFolder = findBestMatch(folder, cands);
