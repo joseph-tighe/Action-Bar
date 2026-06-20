@@ -38,8 +38,14 @@ function runOpen(key) {
     } else {
         appOrFile = getSearch().value;
     }
+    if (key === 'Tab') {
+        x = document.getElementsByClassName('result')[0].textContent.split(" ");
+        filePath = x.slice(2).join(" ");
+        getSearch().value = filePath;
+    }
     if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) return;
     lastSearch = appOrFile;
+    keyPressed = key;
     if (key === 'Enter') {
         ipcRenderer.send('search-open-apps/files', appOrFile);
     } else {
