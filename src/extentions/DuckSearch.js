@@ -36,7 +36,6 @@ function RunSearch(key) {
     } else {
         val2 = getSearch().value;
     }
-    console.log(data);
     if (data.RelatedTopics.length > 0 && val == val2) {
       const resultEl = document.getElementsByClassName('result')[0];
       resultEl.textContent = `${data.RelatedTopics[0].Text}`;

@@ -2,7 +2,6 @@ async function doFetchMusic(q) {
     let url = `https://musicbrainz.org/ws/2/recording/?query=${q}&fmt=json&limit=25&offset=0`;
     const rsp = await fetch(url);
     const data = await rsp.json();
-    console.log(data);
     return data;
 }
 

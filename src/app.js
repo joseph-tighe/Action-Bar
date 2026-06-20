@@ -224,13 +224,11 @@ async function getFilesFor(dir, depth, maxDepth) {
         filesForSearch.push(file);
       } else if (file.endsWith("." + settings['search-files']['invalid-file-extensions'].join("."))) {
       } else if (fs.statSync(filePath).isFile()) {
-        console.log(fs.statSync(filePath).isDirectory() , !file.includes(".") , checkPermissionsSync(filePath) , file != "node_modules");
         filesHash[file] = filePath;
         filesForSearch.push(file);
       }
     }
   }
-  console.log(filesForSearch);
 }
 getFiles();
 function findBestMatchFiles(query, candidates) {
@@ -238,15 +236,9 @@ function findBestMatchFiles(query, candidates) {
   var foundFolder = null;
   query = query.replaceAll("\\", "/");
   if (query.includes("/")) {
-    console.log(query);
     for (folder of query.split("/")) {
-      console.log(folder);
       foundFolder = findBestMatch(folder, cands);
-      console.log(foundFolder);
-      console.log(cands.length);
-      
       cands = cands.filter(c => filesHash[c].includes(foundFolder.best));
-      console.log(cands.length);
     }
   } else {
     return findBestMatch(query, candidates);

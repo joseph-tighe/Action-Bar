@@ -27,7 +27,6 @@ function HandleGithub(key) {
     var response;
 
     var rateLimit = false;
-    console.log(searchUrls);
     if (lastSearches[val] != undefined) {
         response = lastSearches[val];
         rateLimit = false;
