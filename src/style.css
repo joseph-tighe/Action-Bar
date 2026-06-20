@@ -71,3 +71,7 @@ body {
 #results .found-image-wrapper img {
     width: 100%;
 }
+#html5colorpicker {
+    background-color: transparent;
+    border-color: transparent;
+}
