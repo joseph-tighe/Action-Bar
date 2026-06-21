@@ -122,7 +122,7 @@ getSearch().addEventListener('keyup', (e) => {
       }
     }
   } else if (e.key == "Escape") {
-    icp.send('close-window');
+    ipcRenderer.send('close-window');
   }
 });
 setTimeout(async () => {
