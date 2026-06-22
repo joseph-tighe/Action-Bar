@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 var settingsLoaded = false;
 var settings = {};
 var activeFeature = null;
+var activeFeatures = [];
 var features = [];
 var runFunctions = [];
 var checkFunctions = [];
@@ -39,19 +40,58 @@ function userSelection() {
   return 'nothing';
 }
 function loadAnswer(imageURL, result) {
-  //TODO: Several answers in future
-  const resultEl = document.getElementsByClassName('result')[0];
-  resultEl.innerHTML = result;
-  const img = document.createElement('img');
-  img.src = imageURL;
-  img.alt = '';
-  resultEl.appendChild(img);
+  console.log(hasDone);
+  if (!hasDone) {
+    const results = document.getElementById('results');
+    results.innerHTML = "";
+    const wrapper = document.createElement('div');
+    results.appendChild(wrapper);
+    wrapper.className = "resultWrapper";
+    wrapper.innerHTML = '<div class="copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" /><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" /></svg></div>';
+    const resultEl = document.createElement('div');
+    resultEl.className = "result";
+    wrapper.appendChild(resultEl);
+    resultEl.innerHTML = result;
+    const img = document.createElement('img');
+    img.src = imageURL;
+    img.alt = '';
+    resultEl.appendChild(img);
+    hasDone = true;
+  } else {
+    const wrapper = document.createElement('div');
+    results.appendChild(wrapper);
+    wrapper.className = "resultWrapper";
+    wrapper.innerHTML = '<div class="copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" /><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" /></svg></div>';
+    const resultEl = document.createElement('div');
+    resultEl.className = "result";
+    wrapper.appendChild(resultEl);
+    resultEl.innerHTML = result;
+    const img = document.createElement('img');
+    img.src = imageURL;
+    img.alt = '';
+    resultEl.appendChild(img);
+  }
+  let Index = document.getElementsByClassName('copy').length - 1;
+  document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {
+    if (copyFunctions[features.indexOf(activeFeatures[Index])] != undefined || copyFunctions[features.indexOf(activeFeatures[Index])] != null) {
+      copyFunctions[features.indexOf(activeFeatures[Index])](document.getElementsByClassName('result')[Index].textContent);
+    } else {
+      var x = document.getElementsByClassName('result')[Index].textContent;
+      navigator.clipboard.writeText(x);
+    }
+
+    document.getElementsByClassName('copy')[Index].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard-check" viewBox="0 0 16 16"><path stroke="lime" fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
+    setTimeout(() => {
+      document.getElementsByClassName('copy')[Index].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
+    }, 1500);
+  });
 }
 function callActionUserSelection(item, hasGone, e) {
   for (let i = 0; i < features.length; i++) {
     if (item === features[i]) {
       runFunctions[i](e.key);
       activeFeature = features[i];
+      activeFeatures.push(features[i]);
       return true;
     }
   }
@@ -73,6 +113,7 @@ function callActionCheck(item, hasGone, e) {
     for (let i = 0; i < features.length; i++) {
       if (checkFunctions[i] != null && checkFunctions[i]()) {
         activeFeature = features[i];
+        activeFeatures.push(features[i]);
         runFunctions[i](e.key);
         return true;
       }
@@ -86,17 +127,18 @@ function callActionDefult(item, hasGone, e) {
       if (e.key === 'Enter') {
         runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
         activeFeature = settings['defult-extentions'][0];
-      } else {
+        activeFeatures.push(settings['defult-extentions'][0]);
+      } else { 
         runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
         activeFeature = settings['defult-extentions'][0];
+        activeFeatures.push(settings['defult-extentions'][0]);
       }
     } else {
-      const resultEl = document.getElementsByClassName('result')[0];
-      resultEl.textContent = " ";
-      const img = document.createElement('img');
-      img.src = "";
-      img.alt = '';
-      resultEl.appendChild(img);
+      console.log("no results");
+      const results = document.getElementById('results');
+      for (const child of results.children) {
+        results.removeChild(child);
+      }
     }
   }
 }
@@ -105,7 +147,7 @@ function callAction(e) {
   var hasGone = false;
   hasGone = callActionUserSelection(item, hasGone, e);
   hasGone = callActionCheck(item, hasGone, e);
-  callActionDefult(item, hasGone, e);
+  callActionDefult(item, false, e);
 }
 
 ipcRenderer.on('focus-search', () => {
@@ -113,21 +155,6 @@ ipcRenderer.on('focus-search', () => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-  document.getElementsByClassName('copy')[0].addEventListener('click', (e) => {
-    console.log(copyFunctions[features.indexOf(activeFeature)], copyFunctions);
-    console.log(features.indexOf(activeFeature));
-    if (copyFunctions[features.indexOf(activeFeature)] != undefined || copyFunctions[features.indexOf(activeFeature)] != null) {
-      copyFunctions[features.indexOf(activeFeature)]();
-    } else {
-      var x = document.getElementsByClassName('result')[0].textContent;
-      navigator.clipboard.writeText(x);
-    }
-
-    document.getElementsByClassName('copy')[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard-check" viewBox="0 0 16 16"><path stroke="lime" fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
-    setTimeout(() => {
-      document.getElementsByClassName('copy')[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
-    }, 1500);
-  });
   const start = Date.now();
   function waitForSearch() {
     const s = getSearch();

@@ -1,13 +1,9 @@
 var lastSearch = "";
 ipcRenderer.on('open-file', (event, file, action, type) => {
-    resultEl = document.getElementsByClassName('result')[0];
-    resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
-    const img = document.createElement('img');
-    img.src = "../static/images/app.svg";
-    img.alt = '';
-    resultEl.appendChild(img);
+    loadAnswer("../static/images/app.svg", `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
-    resultsEl = document.getElementsByClassName('resultWrapper')[0];
+    var resultsEl = document.getElementsByClassName('resultWrapper')[0];
+    var resultEl = document.getElementsByClassName('result')[0];
     if (imageExtensions.includes(file.file.split(".").pop())) {
         resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
         const imgWrapper = document.createElement('div');
@@ -19,14 +15,14 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
         img.className = "found-image";
         img.alt = '';
         document.getElementsByClassName('found-image-wrapper')[0].appendChild(img);
-        var currentSearch = getSearch().value;
+        /*var currentSearch = getSearch().value;
         function func() {
             if (getSearch().value != currentSearch) {
                 resultsEl.removeChild(document.getElementsByClassName('found-image-wrapper')[0]);
                 getSearch().removeEventListener("keyup",func);
             }
         }
-        getSearch().addEventListener("keyup", func)
+        getSearch().addEventListener("keyup", func)*/
     }
 });
 function runOpen(key) {
@@ -51,6 +47,6 @@ function runOpen(key) {
         ipcRenderer.send('search-apps/files', appOrFile);
     }
 }
-function copyOpen() {
-  navigator.clipboard.writeText(document.getElementsByClassName('result')[0].textContent.split(" ").splice(2));
+function copyOpen(text) {
+  navigator.clipboard.writeText(text.split(" ").splice(2));
 }

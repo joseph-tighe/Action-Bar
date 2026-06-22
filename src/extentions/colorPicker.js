@@ -9,6 +9,6 @@ function handleColorPicker(key) {
   }
   loadAnswer("../static/images/colorPicker.svg", `<input type="color" id="html5colorpicker" value="${val}" onchange="document.getElementById('search').value = document.getElementById('search').value.split(' ')[0] + ' ' + document.getElementById('html5colorpicker').value;" style="width:85%;">`);
 }
-function copyColorPicker() {
+function copyColorPicker(text) {
   navigator.clipboard.writeText(document.getElementById('html5colorpicker').value);
 }
