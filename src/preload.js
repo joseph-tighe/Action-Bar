@@ -1,5 +1,23 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+//Load settings
+var settingsLoaded = false;
+var settings = {};
+var activeFeature = null;
+var features = [];
+var runFunctions = [];
+var checkFunctions = [];
+var copyFunctions = [];
+
+fetch("../config/settings.json").then(response => response.json()).then(data => {
+  settings = data;
+  settingsLoaded = true;
+});
+
+function Quit() {
+  window.close();
+}
+
 function getSearch() { return document.getElementById('search'); }
 
 function userSelection() {
@@ -19,12 +37,6 @@ function userSelection() {
   return 'nothing';
 }
 
-var settingsLoaded = false;
-var settings = {};
-fetch("../config/settings.json").then(response => response.json()).then(data => {
-  settings = data;
-  settingsLoaded = true;
-});
 function loadAnswer(imageURL, result) {
   //TODO: Several answers in future
   const resultEl = document.getElementsByClassName('result')[0];
@@ -34,37 +46,41 @@ function loadAnswer(imageURL, result) {
   img.alt = '';
   resultEl.appendChild(img);
 }
-function callAction(e) {
-  item = userSelection();
-  hasGone = false;
+
+function callActionUserSelection(item, hasGone, e) {
   for (let i = 0; i < features.length; i++) {
     if (item === features[i]) {
       runFunctions[i](e.key);
       activeFeature = features[i];
-      hasGone = true;
-      break;
+      return true;
     }
   }
   if (!hasGone) {
     activeFeature = null;
     if (item === 'quit') {
       Quit();
-      hasGone = true;
+      return true;
     } else if (item === 'autocomplete') {
       autocomplete(e.key);
-      hasGone = true;
+      
+      return true;
     }
   }
+  return hasGone;
+}
+function callActionCheck(item, hasGone, e) {
   if (!hasGone) {
     for (let i = 0; i < features.length; i++) {
       if (checkFunctions[i] != null && checkFunctions[i]()) {
         activeFeature = features[i];
         runFunctions[i](e.key);
-        hasGone = true;
-        break;
+        return true;
       }
     }
   }
+  return hasGone;
+}
+function callActionDefult(item, hasGone, e) {
   if (!hasGone) {
     if (getSearch().value.length > 0) {
       if (e.key === 'Enter') {
@@ -84,12 +100,18 @@ function callAction(e) {
     }
   }
 }
+function callAction(e) {
+  var item = userSelection();
+  var hasGone = false;
+  hasGone = callActionUserSelection(item, hasGone, e);
+  hasGone = callActionCheck(item, hasGone, e);
+  callActionDefult(item, hasGone, e);
+}
 
 ipcRenderer.on('focus-search', () => {
   getSearch().focus();
 });
 
-var activeFeature = null;
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementsByClassName('copy')[0].addEventListener('click', (e) => {
     console.log(copyFunctions[features.indexOf(activeFeature)], copyFunctions);
@@ -130,9 +152,6 @@ window.addEventListener('DOMContentLoaded', () => {
       s.click();
     }
   }, true);
-  function Quit() {
-    window.close();
-  }
 
   getSearch().addEventListener('keyup', (e) => {
     if (e.key && e.key != "Escape") {
@@ -141,6 +160,7 @@ window.addEventListener('DOMContentLoaded', () => {
       ipcRenderer.send('close-window');
     }
   });
+
   setTimeout(async () => {
     while (!settingsLoaded) {
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -162,11 +182,8 @@ function floor(x) {
 function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
-var features = [];
-var runFunctions = [];
-var checkFunctions = [];
-var copyFunctions = [];
-function autocomplete(key) {
+
+function autocomplete(pressedKey) {
   const search = getSearch();
   var feat = "";
   for (const feature of features) {
@@ -181,9 +198,9 @@ function autocomplete(key) {
   img.src = "";
   img.alt = '';
   resultEl.appendChild(img);
-  if (key === 'Enter' || key === 'Tab') {
+  if (pressedKey === 'Enter' || pressedKey === 'Tab') {
     document.getElementById('search').value = `@${feat}`;
-    callAction({key:null});
+    callAction({key:"a"});
   }
 }
 
@@ -201,7 +218,7 @@ function autocomplete(key) {
         "CheckFunction": ${data.CheckFunction},
         "copyFunction": ${data.copyFunction}
       }  
-    })();`)
+    })();`);
       features.push(data.name);
       console.log(feature);
       runFunctions.push(feature.RunFunction);
