@@ -40,7 +40,7 @@ function userSelection() {
   return 'nothing';
 }
 function loadAnswer(imageURL, result) {
-  console.log(hasDone);
+  console.log(hasDone, ResponseId);
   if (!hasDone) {
     const results = document.getElementById('results');
     results.innerHTML = "";
@@ -124,14 +124,10 @@ function callActionCheck(item, hasGone, e) {
 function callActionDefult(item, hasGone, e) {
   if (!hasGone) {
     if (getSearch().value.length > 0) {
-      if (e.key === 'Enter') {
-        runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
-        activeFeature = settings['defult-extentions'][0];
-        activeFeatures.push(settings['defult-extentions'][0]);
-      } else { 
-        runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
-        activeFeature = settings['defult-extentions'][0];
-        activeFeatures.push(settings['defult-extentions'][0]);
+      for (let i = 0; i < features.length; i++) {
+        runFunctions[features.indexOf(settings['defult-extentions'][i])](e.key);
+        activeFeature = settings['defult-extentions'][i];
+        activeFeatures.push(settings['defult-extentions'][i]);
       }
     } else {
       console.log("no results");
@@ -147,7 +143,7 @@ function callAction(e) {
   var hasGone = false;
   hasGone = callActionUserSelection(item, hasGone, e);
   hasGone = callActionCheck(item, hasGone, e);
-  callActionDefult(item, false, e);
+  callActionDefult(item, hasGone, e);
 }
 
 ipcRenderer.on('focus-search', () => {
