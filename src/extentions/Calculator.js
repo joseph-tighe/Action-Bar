@@ -31,12 +31,7 @@ function RunCalculator(key) {
     }
     equation = equation.replaceAll("^", "**");
     const result = eval(equation);
-    const resultEl = document.getElementsByClassName('result')[0];
-    resultEl.textContent = result; // for text part
-    const img = document.createElement('img');
-    img.src = icons['calculator'];
-    img.alt = '';
-    resultEl.appendChild(img);
+    loadAnswer(icons['calculator'], result);
     if (setNext) {
       getSearch().value = result;
       getSearch().focus();

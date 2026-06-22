@@ -45,17 +45,15 @@ function RunSearch(key) {
         val2 = getSearch().value;
     }
     if (data.pages.length > 0 && val == val2) {
-      const resultEl = document.getElementsByClassName('result')[0];
+      var text = "";
       for (const page of data.pages) {
         if (page.description != "Topics referred to by the same term") {
-          resultEl.textContent = `${page.description}`;
+          text = `${page.description}`;
           break;
         }
       }
-      const img = document.createElement('img');
-      img.src = icons['search'];
-      img.alt = '';
-      resultEl.appendChild(img);
+      localStorage
+
     }
   });
 }

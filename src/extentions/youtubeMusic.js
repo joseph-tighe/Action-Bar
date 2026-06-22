@@ -36,12 +36,7 @@ function RunSearch(key) {
             val2 = getSearch().value;
         }
         if (data.recordings.length > 0 && val == val2) {
-            const resultEl = document.getElementsByClassName('result')[0];
-            resultEl.textContent = `Press enter to open ${data.recordings[0].title}`;// - ${data.recordings[0]["artist-credit"][0].name}
-            const img = document.createElement('img');
-            img.src = icons['music'];
-            img.alt = '';
-            resultEl.appendChild(img);
+            loadAnswer(icons['music'], `Press enter to open ${data.recordings[0].title}`);
             if (key === 'Tab') {
                 getSearch().value = data.recordings[0].title;
             } else if (key === 'Enter') {

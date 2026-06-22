@@ -265,13 +265,8 @@ function RunConverter(key) {
     toUnit = formatUnit(toUnit);
     fromUnit = formatUnit(FromUnit);
     var conversion = conversions[fromUnit + "-" + toUnit];
-    const resultEl = document.getElementsByClassName('result')[0];
     result = parseFloat(FromNumber) * conversion;
-    resultEl.textContent = result + toUnit; // for text part
-    const img = document.createElement('img');
-    img.src = icons['converter'];
-    img.alt = '';
-    resultEl.appendChild(img);
+    loadAnswer(icons['converter'], result + toUnit);
     if (key === 'Tab') {
       getSearch().value = result + toUnit;
     }

@@ -37,12 +37,7 @@ function RunSearch(key) {
         val2 = getSearch().value;
     }
     if (data.RelatedTopics.length > 0 && val == val2) {
-      const resultEl = document.getElementsByClassName('result')[0];
-      resultEl.textContent = `${data.RelatedTopics[0].Text}`;
-      const img = document.createElement('img');
-      img.src = icons['ddg'];
-      img.alt = '';
-      resultEl.appendChild(img);
+      loadAnswer(icons['ddg'], data.RelatedTopics[0].Text);
     }
   });
 }

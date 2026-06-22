@@ -10,6 +10,17 @@ fetch("../config/settings.json").then(response => response.json()).then(data => 
   settings = data;
   settingsLoaded = true;
 });
+function loadAnswer(imageURL, result) {
+  //TODO: Several answers in future
+  const resultEl = document.getElementsByClassName('result')[0];
+  resultEl.innerHTML = result;
+  const img = document.createElement('img');
+  img.src = imageURL;
+  img.alt = '';
+  resultEl.appendChild(img);
+}
+
+
 var activeFeature = null;
 window.addEventListener('DOMContentLoaded', () => {
 document.getElementsByClassName('copy')[0].addEventListener('click', (e) => {

@@ -8,12 +8,7 @@ function RunWeather(key) {
   } else {
     val = getSearch().value;
   }
-  const resultEl = document.getElementsByClassName('result')[0];
-  resultEl.textContent = `Press enter to get the weather for ${val == "" ? "your current location" : val}`;
-  const img = document.createElement('img');
-  img.src = icons['weather'];
-  img.alt = '';
-  resultEl.appendChild(img);
+  loadAnswer(icons['weather'], `Press enter to get the weather for ${val == "" ? "your current location" : val}`);
   if (key === 'Enter') {
     let location = val;
     url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`
