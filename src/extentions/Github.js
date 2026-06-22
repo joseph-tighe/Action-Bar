@@ -56,7 +56,7 @@ function HandleGithub(key) {
     }
     if (val != val2.replaceAll(" ", "+")) return;
     lastSearches[val] = response;
-    loadAnswer(icons['github'], rateLimit ? "Rate limit exceeded please try again in a bit" : response == null ? "No results" : `Press enter to open ${response.full_name}`);
+    loadAnswer("../static/images/github.svg", rateLimit ? "Rate limit exceeded please try again in a bit" : response == null ? "No results" : `Press enter to open ${response.full_name}`);
     if (key === 'Enter') {
         let location = val;
         url = `https://duckduckgo.com/?t=ffab&q=weather+${location}&ia=web`

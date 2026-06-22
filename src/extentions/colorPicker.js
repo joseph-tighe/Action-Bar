@@ -7,7 +7,7 @@ function handleColorPicker(key) {
   } else {
     val = getSearch().value;
   }
-  loadAnswer(icons['colorPicker'], `<input type="color" id="html5colorpicker" value="${val}" onchange="document.getElementById('search').value = document.getElementById('search').value.split(' ')[0] + ' ' + document.getElementById('html5colorpicker').value;" style="width:85%;">`);
+  loadAnswer("../static/images/colorPicker.svg", `<input type="color" id="html5colorpicker" value="${val}" onchange="document.getElementById('search').value = document.getElementById('search').value.split(' ')[0] + ' ' + document.getElementById('html5colorpicker').value;" style="width:85%;">`);
 }
 function copyColorPicker() {
   navigator.clipboard.writeText(document.getElementById('html5colorpicker').value);

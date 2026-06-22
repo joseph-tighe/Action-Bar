@@ -266,7 +266,7 @@ function RunConverter(key) {
     fromUnit = formatUnit(FromUnit);
     var conversion = conversions[fromUnit + "-" + toUnit];
     result = parseFloat(FromNumber) * conversion;
-    loadAnswer(icons['converter'], result + toUnit);
+    loadAnswer("../static/images/convert.svg", result + toUnit);
     if (key === 'Tab') {
       getSearch().value = result + toUnit;
     }

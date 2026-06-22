@@ -36,7 +36,7 @@ function RunSearch(key) {
             val2 = getSearch().value;
         }
         if (data.recordings.length > 0 && val == val2) {
-            loadAnswer(icons['music'], `Press enter to open ${data.recordings[0].title}`);
+            loadAnswer("../static/images/music.svg", `Press enter to open ${data.recordings[0].title}`);
             if (key === 'Tab') {
                 getSearch().value = data.recordings[0].title;
             } else if (key === 'Enter') {

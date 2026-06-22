@@ -31,7 +31,7 @@ function RunCalculator(key) {
     }
     equation = equation.replaceAll("^", "**");
     const result = eval(equation);
-    loadAnswer(icons['calculator'], result);
+    loadAnswer("../static/images/calculator.svg", result);
     if (setNext) {
       getSearch().value = result;
       getSearch().focus();

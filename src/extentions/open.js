@@ -3,7 +3,7 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
     resultEl = document.getElementsByClassName('result')[0];
     resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
     const img = document.createElement('img');
-    img.src = icons['app'];
+    img.src = "../static/images/app.svg";
     img.alt = '';
     resultEl.appendChild(img);
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]

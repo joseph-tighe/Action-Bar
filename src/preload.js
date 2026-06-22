@@ -159,10 +159,6 @@ function floor(x) {
 function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
-
-var icons = {
-  'app': '../static/images/app.svg',
-};
 var features = [];
 var runFunctions = [];
 var checkFunctions = [];
@@ -201,7 +197,6 @@ for (const file of Object.keys(files)) {
       }  
     })();`)
     features.push(data.name);
-    icons[data.name] = data.imageUrl;
     console.log(feature);
     runFunctions.push(feature.RunFunction);
     checkFunctions.push(feature.CheckFunction);

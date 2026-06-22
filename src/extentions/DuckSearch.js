@@ -37,7 +37,7 @@ function RunSearch(key) {
         val2 = getSearch().value;
     }
     if (data.RelatedTopics.length > 0 && val == val2) {
-      loadAnswer(icons['ddg'], data.RelatedTopics[0].Text);
+      loadAnswer("../static/images/DDG.svg", data.RelatedTopics[0].Text);
     }
   });
 }

@@ -46,13 +46,14 @@ function RunSearch(key) {
     }
     if (data.pages.length > 0 && val == val2) {
       var text = "";
+      const resultEl = document.getElementsByClassName('result')[0];
       for (const page of data.pages) {
         if (page.description != "Topics referred to by the same term") {
           text = `${page.description}`;
           break;
         }
       }
-      localStorage
+      loadAnswer("../static/images/wiki.svg", text);
 
     }
   });

@@ -18,7 +18,7 @@ function RunTimer(key) {
   if (numbers.length === 1) time = parseInt(numbers[0]) * 60;
   else if (numbers.length === 2) time = parseInt(numbers[0]) * 60 + parseInt(numbers[1]);
   else if (numbers.length === 3) time = parseInt(numbers[0]) * 3600 + parseInt(numbers[1]) * 60 + parseInt(numbers[2]);
-  loadAnswer(icons['timer'], `${floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0"));
+  loadAnswer("../static/images/timer.svg", `${floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0"));
   if (!(key === 'Enter') || isNaN(time) || time < 0 || time > 86400) return 'nothing';
 
   ipcRenderer.send('show-notification', { title: 'Timer', body: 'Started timer' });

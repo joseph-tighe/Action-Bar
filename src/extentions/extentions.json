@@ -2,7 +2,6 @@
     "weather": {
         "file": "Weather.js",
         "name": "weather",
-        "imageUrl": "../static/images/weather.svg",
         "active": true,
         "RunFunction": "RunWeather",
         "CheckFunction": null
@@ -10,7 +9,6 @@
     "calculator": {
         "file": "Calculator.js",
         "name": "calculator",
-        "imageUrl": "../static/images/calculator.svg",
         "active": true,
         "RunFunction": "RunCalculator",
         "CheckFunction": "canCalculate"
@@ -18,7 +16,6 @@
     "converter": {
         "file": "Conversion.js",
         "name": "converter",
-        "imageUrl": "../static/images/convert.svg",
         "active": true,
         "RunFunction": "RunConverter",
         "CheckFunction": "canConvert"
@@ -26,7 +23,6 @@
     "timer": {
         "file": "timer.js",
         "name": "timer",
-        "imageUrl": "../static/images/timer.svg",
         "active": true,
         "RunFunction": "RunTimer",
         "CheckFunction": null
@@ -34,7 +30,6 @@
     "open": {
         "file": "open.js",
         "name": "open",
-        "imageUrl": "../static/images/app.svg",
         "active": true,
         "RunFunction": "runOpen",
         "CheckFunction": null,
@@ -43,7 +38,6 @@
     "wiki": {
         "file": "wiki.js",
         "name": "wiki",
-        "imageUrl": "../static/images/wiki.svg",
         "active": false,
         "RunFunction": "RunSearch",
         "CheckFunction": null
@@ -51,7 +45,6 @@
     "github": {
         "file": "Github.js",
         "name": "github",
-        "imageUrl": "../static/images/github.svg",
         "active": true,
         "RunFunction": "HandleGithub",
         "CheckFunction": null,
@@ -60,7 +53,6 @@
     "ddg": {
         "file": "DuckSearch.js",
         "name": "ddg",
-        "imageUrl": "../static/images/DDG.svg",
         "active": true,
         "RunFunction": "RunSearch",
         "CheckFunction": null
@@ -68,7 +60,6 @@
     "music": {
         "file": "youtubeMusic.js",
         "name": "music",
-        "imageUrl": "../static/images/music.svg",
         "active": true,
         "RunFunction": "RunSearch",
         "CheckFunction": null
@@ -76,7 +67,6 @@
     "colorPicker": {
         "file": "colorPicker.js",
         "name": "colorPicker",
-        "imageUrl": "../static/images/colorPicker.svg",
         "active": true,
         "RunFunction": "handleColorPicker",
         "CheckFunction": null,
