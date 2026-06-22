@@ -7,14 +7,14 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
     img.alt = '';
     resultEl.appendChild(img);
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
-    resultsEl = document.getElementById('results');
+    resultsEl = document.getElementsByClassName('resultWrapper')[0];
     if (imageExtensions.includes(file.file.split(".").pop())) {
         resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
         const imgWrapper = document.createElement('div');
         const img = document.createElement('img');
         imgWrapper.className = "found-image-wrapper";
         imgWrapper.appendChild(img);
-        document.getElementById('results').appendChild(imgWrapper);
+        document.getElementsByClassName('resultWrapper')[0].appendChild(imgWrapper);
         img.src = file.file;
         img.className = "found-image";
         img.alt = '';

@@ -8,6 +8,8 @@ var features = [];
 var runFunctions = [];
 var checkFunctions = [];
 var copyFunctions = [];
+var ResponseId = 0;
+var hasDone = false;
 
 fetch("../config/settings.json").then(response => response.json()).then(data => {
   settings = data;
@@ -36,7 +38,6 @@ function userSelection() {
   }
   return 'nothing';
 }
-
 function loadAnswer(imageURL, result) {
   //TODO: Several answers in future
   const resultEl = document.getElementsByClassName('result')[0];
@@ -46,7 +47,6 @@ function loadAnswer(imageURL, result) {
   img.alt = '';
   resultEl.appendChild(img);
 }
-
 function callActionUserSelection(item, hasGone, e) {
   for (let i = 0; i < features.length; i++) {
     if (item === features[i]) {
@@ -84,11 +84,11 @@ function callActionDefult(item, hasGone, e) {
   if (!hasGone) {
     if (getSearch().value.length > 0) {
       if (e.key === 'Enter') {
-        runFunctions[features.indexOf(settings['defult-extention-onEnter'])](e.key);
-        activeFeature = settings['defult-extention-onEnter'];
+        runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
+        activeFeature = settings['defult-extentions'][0];
       } else {
-        runFunctions[features.indexOf(settings['defult-extention'])](e.key);
-        activeFeature = settings['defult-extention'];
+        runFunctions[features.indexOf(settings['defult-extentions'][0])](e.key);
+        activeFeature = settings['defult-extentions'][0];
       }
     } else {
       const resultEl = document.getElementsByClassName('result')[0];
@@ -155,6 +155,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   getSearch().addEventListener('keyup', (e) => {
     if (e.key && e.key != "Escape") {
+      ResponseId++;
+      hasDone = false;
       callAction(e);
     } else if (e.key == "Escape") {
       ipcRenderer.send('close-window');

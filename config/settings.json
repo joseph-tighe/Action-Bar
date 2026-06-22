@@ -40,6 +40,8 @@
         "initial-max-depth": 3
     },
     "open-shortcut":"Alt+Z",
-    "defult-extention": "open",
-    "defult-extention-onEnter": "open"
+    "defult-extentions": ["open", "ddg"],
+    "answers": {
+        "max-amount": 5
+    }
 }
