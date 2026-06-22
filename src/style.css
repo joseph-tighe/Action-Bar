@@ -32,6 +32,10 @@ body {
 #results {
     max-width: calc((var(--answerbarwidth)/100%) * var(--searchwidth));
     min-width: calc(((var(--answerbarwidth)/100%)*var(--expandability)) * var(--searchwidth));
+    background: var(--background);
+    color: var(--foreground);
+    border-bottom-left-radius: var(--borderradius);
+    border-bottom-right-radius: var(--borderradius);
 }
 .resultWrapper {
     padding-left: 10px;
@@ -39,10 +43,6 @@ body {
     font-size: 20px;
     border: none;
     outline: none;
-    background: var(--background);
-    color: var(--foreground);
-    border-bottom-left-radius: var(--borderradius);
-    border-bottom-right-radius: var(--borderradius);
     display: flex;
     flex-direction: row-reverse;
     justify-content: left;
