@@ -1,0 +1,15 @@
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.sidebar {
+    width: 10%;
+    background-color: #191a1b;
+}
+.content {
+    width: 90%;
+    background-color: #121314;
+}
