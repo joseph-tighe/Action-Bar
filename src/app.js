@@ -247,7 +247,6 @@ function findBestMatchFiles(query, candidates) {
           }
         }
       }
-      console.log(query);
     }
     for (i = 0; i < query.split("/").length - 1; i++) {
       folder = query.split("/")[i];
@@ -261,7 +260,6 @@ function findBestMatchFiles(query, candidates) {
       }
       if (searchThrough) {
         initDirs.push(filesHash[foundFolder.best]);
-        console.log(initDirs);
         getFilesFor(filesHash[foundFolder.best], 1, settings['search-files']['initial-max-depth']);
       }
     }
