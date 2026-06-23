@@ -1,4 +1,5 @@
-function handleColorPicker(key) {
+function handleColorPicker(key, output) {
+  output.updateImage("../static/images/colorPicker.svg");
   var val;
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");
@@ -7,7 +8,7 @@ function handleColorPicker(key) {
   } else {
     val = getSearch().value;
   }
-  loadAnswer("../static/images/colorPicker.svg", `<input type="color" id="html5colorpicker" value="${val}" onchange="document.getElementById('search').value = document.getElementById('search').value.split(' ')[0] + ' ' + document.getElementById('html5colorpicker').value;" style="width:85%;">`);
+  output.updateText(`<input type="color" id="html5colorpicker" value="${val}" onchange="document.getElementById('search').value = document.getElementById('search').value.split(' ')[0] + ' ' + document.getElementById('html5colorpicker').value;" style="width:85%;">`);
 }
 function copyColorPicker(text) {
   navigator.clipboard.writeText(document.getElementById('html5colorpicker').value);

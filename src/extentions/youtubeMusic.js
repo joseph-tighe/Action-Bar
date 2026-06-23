@@ -16,7 +16,8 @@ async function fetchAsyncMusic(q)
     return "";
 }
 
-function RunSearch(key) {
+function RunSearch(key, output) {
+    output.updateImage("../static/images/music.svg");
     var val;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
         values = getSearch().value.split(" ");
@@ -36,7 +37,7 @@ function RunSearch(key) {
             val2 = getSearch().value;
         }
         if (data.recordings.length > 0 && val == val2) {
-            loadAnswer("../static/images/music.svg", `Press enter to open ${data.recordings[0].title}`);
+            output.updateText(`Press enter to open ${data.recordings[0].title}`);
             if (key === 'Tab') {
                 getSearch().value = data.recordings[0].title;
             } else if (key === 'Enter') {

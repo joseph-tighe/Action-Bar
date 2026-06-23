@@ -1,20 +1,18 @@
 var lastSearch = "";
-ipcRenderer.on('open-file', (event, file, action, type) => {
-    loadAnswer("../static/images/app.svg", `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
+ipcRenderer.on('open-file', (event, file) => {
+    openningOutput.updateText(`${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
-    var resultsEl = document.getElementsByClassName('resultWrapper')[0];
-    var resultEl = document.getElementsByClassName('result')[0];
     if (imageExtensions.includes(file.file.split(".").pop())) {
-        resultEl.textContent = `${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`;
         const imgWrapper = document.createElement('div');
         const img = document.createElement('img');
         imgWrapper.className = "found-image-wrapper";
         imgWrapper.appendChild(img);
-        document.getElementsByClassName('resultWrapper')[0].appendChild(imgWrapper);
+        openningOutput.getWrapper().appendChild(imgWrapper);
         img.src = file.file;
         img.className = "found-image";
         img.alt = '';
         document.getElementsByClassName('found-image-wrapper')[0].appendChild(img);
+        openningOutput.removeIcon();
         /*var currentSearch = getSearch().value;
         function func() {
             if (getSearch().value != currentSearch) {
@@ -25,21 +23,30 @@ ipcRenderer.on('open-file', (event, file, action, type) => {
         getSearch().addEventListener("keyup", func)*/
     }
 });
-function runOpen(key) {
+var openningOutput = null;
+function runOpen(key, output) {
+    output.updateImage("../static/images/app.svg");
+    openningOutput = output;
     var appOrFile;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
+        values = getSearch().trim().split(" ");
         values.shift();
         appOrFile = values.join(" ");
     } else {
-        appOrFile = getSearch().value;
+        appOrFile = getSearch().value.trim();
     }
     if (key === 'Tab') {
         x = document.getElementsByClassName('result')[0].textContent.split(" ");
         filePath = x.slice(2).join(" ");
         getSearch().value = filePath;
     }
-    if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) return;
+    if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) {
+        if (appOrFile.length < 1) {
+            output.updateText("No results");
+        } else {
+            output.updateText("Press enter to open");
+        }
+    };
     lastSearch = appOrFile;
     if (key === 'Enter') {
         ipcRenderer.send('search-open-apps/files', appOrFile);

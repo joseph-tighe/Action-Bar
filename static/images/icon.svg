@@ -1,24 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-  <rect width="48" height="48" rx="8" fill="#0078D4"/>
-
-  <!-- exhaust (bottom) -->
-  <g opacity=".55">
-    <path fill="#ffffff"
-          d="M20 24
-             L22 34
-             L24 32
-             L26 34
-             L28 24Z"/>
-  </g>
-
-  <!-- rocket body (top) -->
-  <path fill="#ffffff"
-        d="M24 6
-           L26 22
-           L22 22
-           L24 6Z
-           M18 22
-           L24 18
-           L30 22
-           L24 26Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48">
+  <rect width="48" height="48" rx="10" fill="#0B1220"/>
+  <rect x="8" y="14" width="32" height="8" rx="4" fill="#4DA3FF"/>
+  <rect x="14" y="28" width="20" height="8" rx="4" fill="#3B86E8"/>
 </svg>

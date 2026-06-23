@@ -18,7 +18,8 @@ async function fetchAsyncDDG(q)
   return "";
 }
 
-function RunSearch(key) {
+function RunSearch(key, output) {
+  output.updateImage("../static/images/DDG.svg");
   var val;
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");
@@ -28,6 +29,7 @@ function RunSearch(key) {
     val = getSearch().value;
   }
   fetchAsyncDDG(val.replaceAll(" ", "+")).then(data => {
+    output.updateImage("../static/images/DDG.svg");
     var val2;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
         values = getSearch().value.split(" ");
@@ -37,7 +39,9 @@ function RunSearch(key) {
         val2 = getSearch().value;
     }
     if (data.RelatedTopics.length > 0 && val == val2) {
-      loadAnswer("../static/images/DDG.svg", data.RelatedTopics[0].Text);
+      output.updateText(data.RelatedTopics[0].Text);
+    } else {
+      output.destroy();
     }
   });
 }

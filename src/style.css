@@ -76,3 +76,24 @@ body {
     background-color: transparent;
     border-color: transparent;
 }
+.loader {
+        stroke-dasharray: 24, 16;
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+    stroke-linecap: round;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% {
+        stroke-dasharray: 10, 28;
+        transform: rotate(0deg);
+    }
+    30% {
+        stroke-dasharray: 22, 16;
+    }
+    100% {
+        stroke-dasharray: 10, 28;
+        transform: rotate(360deg);
+    }
+}

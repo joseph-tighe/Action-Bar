@@ -242,8 +242,9 @@ function formatUnit(unit) {
   }
   return unit;
 }
-function RunConverter(key) {
+function RunConverter(key, output) {
   if (canConvert() !== 'nothing') {
+    output.updateImage("../static/images/convert.svg");
     var value;
     if (getSearch().value.includes(settings['tool-decloration-char'])) {
       values = getSearch().value.split(" ");
@@ -266,10 +267,12 @@ function RunConverter(key) {
     fromUnit = formatUnit(FromUnit);
     var conversion = conversions[fromUnit + "-" + toUnit];
     result = parseFloat(FromNumber) * conversion;
-    loadAnswer("../static/images/convert.svg", result + toUnit);
+    output.updateText(result + toUnit);
     if (key === 'Tab') {
       getSearch().value = result + toUnit;
     }
+  } else {
+    output.destroy();
   }
 }
 

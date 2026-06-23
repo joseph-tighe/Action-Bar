@@ -26,7 +26,8 @@ async function fetchAsync(q)
   return "";
 }
 
-function RunSearch(key) {
+function RunSearch(key, output) {
+  output.updateImage("../static/images/wiki.svg");
   var val;
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");
@@ -53,8 +54,7 @@ function RunSearch(key) {
           break;
         }
       }
-      loadAnswer("../static/images/wiki.svg", text);
-
+      output.updateText(text);
     }
   });
 }

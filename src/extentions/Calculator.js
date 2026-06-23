@@ -1,6 +1,5 @@
 function canCalculate() {
   var s;
-  //set Image
   if (getSearch().value.includes(settings['tool-decloration-char'])) {
     values = getSearch().value.split(" ");
     values.shift();
@@ -21,8 +20,9 @@ function canCalculate() {
   return isNumericChar;
 }
 
-function RunCalculator(key) {
+function RunCalculator(key, output) {
   if (canCalculate()) {
+    output.updateImage("../static/images/calculator.svg");
     equation = getSearch().value;
     setNext = false;
     if (equation.includes("=") || (key === 'Enter' || key === 'Tab')) {
@@ -31,7 +31,7 @@ function RunCalculator(key) {
     }
     equation = equation.replaceAll("^", "**");
     const result = eval(equation);
-    loadAnswer("../static/images/calculator.svg", result);
+    output.updateText(result);
     if (setNext) {
       getSearch().value = result;
       getSearch().focus();
