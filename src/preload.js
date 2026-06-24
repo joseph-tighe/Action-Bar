@@ -107,12 +107,17 @@ function Quit() {
   window.close();
 }
 
+function openSetting() {
+  ipcRenderer.send('open-settings');
+  getSearch().value = "";
+}
+
 function getSearch() { return document.getElementById('search'); }
 
 function userSelection() {
-  if (!settings['tool-declorable']) return 'nothing';
+  if (!settings['tool-decloration']['tool-declorable']) return 'nothing';
   value = getSearch().value.toLowerCase();
-  if (value[0] == settings['tool-decloration-char']) {
+  if (value[0] == settings['tool-decloration']['tool-decloration-char']) {
     for (feature of features) {
       if (value.split(" ")[0].includes(feature.toLowerCase())) {
         return feature;
@@ -120,6 +125,8 @@ function userSelection() {
     }
     if (value.split(" ")[0].includes("quit")) {
       return 'quit';
+    } else if (value.split(" ")[0].includes("settings")) {
+      return 'settings';
     }
     return 'autocomplete';
   }
@@ -139,7 +146,10 @@ function callActionUserSelection(item, hasGone, e) {
     if (item === 'quit') {
       Quit();
       return true;
-    } else if (item === 'autocomplete') {
+    } else if (item === 'settings') {
+      openSetting();
+      return true;
+    } if (item === 'autocomplete') {
       autocomplete(e.key);
       
       return true;
@@ -164,12 +174,12 @@ function callActionCheck(item, hasGone, e) {
 function callActionDefult(item, hasGone, e) {
   if (!hasGone) {
     if (getSearch().value.length > 0) {
-      for (let i = 0; i < settings['defult-extentions'].length; i++) {
+      for (let i = 0; i < settings["extensions"]['defult-extentions'].length; i++) {
         let answer = new Answer("../static/images/icon.svg", "Loading...");
         answer.setLoading(true);
         answerList.push(answer);
-        runFunctions[features.indexOf(settings['defult-extentions'][i])](e.key, answer);
-        activeFeatures.push(settings['defult-extentions'][i]);
+        runFunctions[features.indexOf(settings["extensions"]['defult-extentions'][i])](e.key, answer);
+        activeFeatures.push(settings["extensions"]['defult-extentions'][i]);
       }
     } else {
       console.log("no results");

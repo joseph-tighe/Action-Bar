@@ -17,8 +17,10 @@
         "change-screen": true,
         "vertical-offset": 50
     },
-    "tool-declorable": true,
-    "tool-decloration-char": "@",
+    "tool-decloration": {
+        "tool-declorable": true,
+        "tool-decloration-char": "@"
+    },
     "search-files": {
         "enabled": true,
         "starting-dirs": {
@@ -39,8 +41,15 @@
         ],
         "initial-max-depth": 3
     },
-    "open-shortcut":"Alt+Z",
-    "defult-extentions": ["open", "ddg"],
+    "shortcuts": {
+        "open-shortcut": "Alt+Z"
+    },
+    "extensions": {
+        "defult-extentions": [
+            "open",
+            "ddg"
+        ]
+    },
     "answers": {
         "max-amount": 5
     }

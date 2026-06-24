@@ -15,3 +15,24 @@ body {
     height: 100vh;
     background-color: #000000;
 }
+.item:hover {
+    background-color: #1e1f20;
+}
+.item {
+    cursor: pointer;
+    padding-left: 10px;
+}
+span {
+    margin-left: 10px;
+}
+.item:active {
+    background-color: #1e1f20;
+}
+.section {
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out;
+    background-color: #191a1b;
+}
+h2 {
+    cursor: pointer;
+}

@@ -48,7 +48,7 @@ app.whenReady().then(() => {
     mainWindow.hide();
   })
   mainWindow.hide();
-  const ret = globalShortcut.register(settings['open-shortcut'], () => {
+  const ret = globalShortcut.register(settings['shortcuts']['open-shortcut'], () => {
     toggleWindowVisibility()
   })
   mainWindow.on('blur', () => {
@@ -62,12 +62,12 @@ app.whenReady().then(() => {
   }
 
   // Check whether a shortcut is registered.
-  console.log(globalShortcut.isRegistered(settings['open-shortcut']) ? 'GLobal shortcut is registered' : 'GLobal shortcut failed registration')
+  console.log(globalShortcut.isRegistered(settings['shortcuts']['open-shortcut']) ? 'Global shortcut is registered' : 'GLobal shortcut failed registration')
 })
 
 app.on('will-quit', () => {
   // Unregister a shortcut.
-  globalShortcut.unregister(settings['open-shortcut'])
+  globalShortcut.unregister(settings['shortcuts']['open-shortcut'])
 
   // Unregister all shortcuts.
   globalShortcut.unregisterAll()
@@ -314,4 +314,28 @@ ipcMain.on('search-open-apps/files', (event, query) => {
 });
 ipcMain.on('close-window', (event) => {
   toggleWindowVisibility();
+});
+ipcMain.on('open-settings', (event) => {
+  settingsWindow = new BrowserWindow({
+    width: settings['window']['width'],
+    height: settings['window']['height'],
+    transparent: true,
+    //vibrancy: 'fullscreen-ui',    // on MacOS
+    //backgroundMaterial: 'acrylic', // on Windows 11
+    resizable: true, // Optional: prevents resizing
+    webPreferences: {
+      preload: path.join(__dirname, 'settings/preload.js')
+    },
+    frame: true
+  })
+  settingsWindow.loadFile('src/settings/index.html');
+  settingsWindow.on('blur', () => {
+    settingsWindow.hide();
+  });
+  settingsWindow.on('focus', () => {
+    settingsWindow.webContents.send('focus-search');
+  });
+});
+ipcMain.on('update-settings', (event, settings) => {
+  fs.writeFileSync(path.join(__dirname, '../config/settings.json'), JSON.stringify(settings, null, 4));
 });
