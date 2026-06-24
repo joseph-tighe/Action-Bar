@@ -14,10 +14,17 @@ var answerList = [];
 
 class Answer {
   constructor(imageUrl, text) {
+    this.text = text;
+    let selector = false;
+    if (document.getElementsByClassName('result').length > settings['answers']['max-amount']) {
+      return;
+    } else if (document.getElementsByClassName('result').length == 0) {
+      selector = true;
+    }
     this.imageUrl = imageUrl;
     this.wrapper = document.createElement('div');
     results.appendChild(this.wrapper);
-    this.wrapper.className = "resultWrapper";
+    this.wrapper.className = `resultWrapper${selector ? " selector" : ""}`;
     this.wrapper.innerHTML = '<div class="copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" /><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" /></svg></div>';
     this.resultEl = document.createElement('div');
     this.resultEl.className = "result";
@@ -25,7 +32,7 @@ class Answer {
     this.resultEl.innerHTML = text;
     this.img = document.createElement('img');
     this.img.src = this.imageUrl;
-    this.img.alt = '';
+    this.img.alt = '';0
     this.resultEl.appendChild(this.img);
     let Index = document.getElementsByClassName('copy').length - 1;
     document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {
@@ -195,6 +202,7 @@ function callAction(e) {
   for (let i = 0; i < answerList.length; i++) {
     answerList[i].destroy();
   }
+  answerList = [];
   var hasGone = false;
   hasGone = callActionUserSelection(item, hasGone, e);
   hasGone = callActionCheck(item, hasGone, e);
@@ -231,15 +239,64 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }, true);
 
-  getSearch().addEventListener('keyup', (e) => {
-    if (e.key && e.key != "Escape") {
-      ResponseId++;
-      hasDone = false;
-      callAction(e);
-    } else if (e.key == "Escape") {
-      ipcRenderer.send('close-window');
+getSearch().addEventListener('keyup', (e) => {
+  const wrappers = document.getElementsByClassName("resultWrapper");
+
+  if (e.key === "Escape") {
+    ipcRenderer.send('close-window');
+    return;
+  }
+
+  if (e.key === "Enter" || e.key === "Tab") {
+    if (wrappers.length === 0) return;
+
+    for (let i = 0; i < wrappers.length; i++) {
+      if (wrappers[i].classList.contains("selector")) {
+        if (activeFeatures.length === 0) {
+          console.log(activeFeatures);
+          console.log(answerList);
+          autocompleteEnter(answerList[i]);
+        } else {
+          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i]);
+        }
+      }
     }
-  });
+    return;
+  }
+
+  if (e.key === "ArrowUp") {
+    if (wrappers.length === 0) return;
+
+    for (let i = 0; i < wrappers.length; i++) {
+      if (wrappers[i].classList.contains("selector")) {
+        wrappers[i].classList.remove("selector");
+        wrappers[(i - 1 + wrappers.length) % wrappers.length].classList.add("selector");
+        break;
+      }
+    }
+    return;
+  }
+
+  if (e.key === "ArrowDown") {
+    if (wrappers.length === 0) return;
+
+    for (let i = 0; i < wrappers.length; i++) {
+      if (wrappers[i].classList.contains("selector")) {
+        wrappers[i].classList.remove("selector");
+        wrappers[(i + 1) % wrappers.length].classList.add("selector");
+        break;
+      }
+    }
+    return;
+  }
+  activeFeatures = []
+  if (e.key) {
+    ResponseId++;
+    hasDone = false;
+    callAction(e);
+  }
+});
+
 
   setTimeout(async () => {
     while (!settingsLoaded) {
@@ -262,21 +319,28 @@ function floor(x) {
 function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
-
+function autocompleteEnter(answer) {
+  if (answer.getText() != "") {
+    getSearch().value = answer.getText();
+    getSearch().focus();
+  }
+  callAction({key:"a"});
+  
+}
 function autocomplete(pressedKey) {
   const search = getSearch();
-  var feat = "";
+  var feats = [];
   for (const feature of features) {
     if (("@" + feature.toLowerCase()).includes(search.value.toLowerCase())) {
-      feat = feature;
-      break;
+      feats.push(feature);
     }
   }
-  let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `@${feat}`);
-  answerList.push(answer);
-  if (pressedKey === 'Enter' || pressedKey === 'Tab') {
-    document.getElementById('search').value = `@${feat}`;
-    callAction({key:"a"});
+  c = 0;
+  for (const feat of feats) {
+    let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `@${feat}`);
+    answerList.push(answer);
+    c++;
+    if (c == settings["answers"]["max-amount"]) break;
   }
 }
 
