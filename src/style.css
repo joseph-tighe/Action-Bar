@@ -55,6 +55,7 @@ body {
     flex-direction: row-reverse;
     align-items: center;
     justify-content: left;
+    overflow-wrap: break-word;
 }
 .result img {
     justify-self: right;
