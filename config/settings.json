@@ -6,7 +6,8 @@
         "shadowstrength": "10px",
         "answerbarwidth": "90%",
         "searchwidth": "90%",
-        "expandability": "0%"
+        "expandability": "0%",
+        "tips": true
     },
     "window": {
         "width": 800,
