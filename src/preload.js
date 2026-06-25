@@ -323,11 +323,13 @@ getSearch().addEventListener('keyup', (e) => {
   if (settings['style']['tips']) {
     var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
     var placeholderIndex = 1;
+
     setInterval(() => {
-      search = getSearch();
-      search.placeholder = placeholders[placeholderIndex];
-      placeholderIndex = (placeholderIndex + 1) % placeholders.length;
-    }, 3000);
+      if (search.value == "") {
+        search.placeholder = placeholders[placeholderIndex];
+        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+      }
+    }, 6000);
   }
 });
 
