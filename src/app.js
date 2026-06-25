@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, ipcRenderer } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, ipcRenderer, Menu } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
 const open = require('open');
@@ -316,10 +316,11 @@ ipcMain.on('close-window', (event) => {
   toggleWindowVisibility();
 });
 ipcMain.on('open-settings', (event) => {
+  Menu.setApplicationMenu(null);
   settingsWindow = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
-    transparent: true,
+    transparent: false,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
     resizable: true, // Optional: prevents resizing

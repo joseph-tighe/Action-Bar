@@ -335,6 +335,11 @@ function autocomplete(pressedKey) {
       feats.push(feature);
     }
   }
+  if (("@settings").includes(search.value.toLowerCase())) {
+    feats.push("settings");
+  } else if (("@quit").includes(search.value.toLowerCase())) {
+    feats.push("quit");
+  }
   c = 0;
   for (const feat of feats) {
     let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `@${feat}`);
