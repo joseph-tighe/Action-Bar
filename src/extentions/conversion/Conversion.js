@@ -22,7 +22,7 @@ const unitNames = {
   "qt": ["quarts", "quart", "qt"],
   "gal": ["gallons", "gallon", "gal"],
   "min": ["minutes", "minute", "min"],
-  "hr": ["hours", "hour", "hr"],
+  "hr": ["hours", "hour", "hr", "h"],
   "s": ["seconds", "second", "s"],
   "ms": ["milliseconds", "millisecond", "ms"],
   "F": ["fahrenheit", "f"],
@@ -240,6 +240,26 @@ function formatUnit(unit) {
       return key;
     }
   }
+  //handlers for subunits Nm mph, kmph, etc
+  x = []
+  delimeter = unit.includes("/") ? "/" : unit.includes("*") ? "*" : unit.includes("per") ? "per" : unit.includes("p") ? "p" : "";
+  for (key in unitNames) {
+    for (key1 in unitNames[key]) {//all variations of unit
+      if (unit.split(delimeter).includes(unitNames[key][key1])) {
+        x.push(key);
+      }
+    }
+  }
+  console.log(x);
+  if (x.length == 2) {
+    var unit1 = x[0];
+    var unit2 = x[1];
+    if (unit.includes("/") || unit.includes("per") || unit.includes("p")) {
+      return `${unit1}/${unit2}`;
+    } else {
+      return `${unit1}*${unit2}`;
+    }
+  }
   return unit;
 }
 function RunConverter(key, output) {
@@ -259,6 +279,28 @@ function RunConverter(key, output) {
     toUnit = formatUnit(toUnit);
     fromUnit = formatUnit(FromUnit);
     var conversion = conversions[fromUnit + "-" + toUnit];
+    console.log(conversion);
+    if (conversion == undefined) {
+      conversion = 1;
+      if (fromUnit.includes("/")) {
+        fromUnit1 = formatUnit(fromUnit.split("/")[0]);
+        fromUnit2 = formatUnit(fromUnit.split("/")[1]);
+        toUnit1 = formatUnit(toUnit.split("/")[0]);
+        toUnit2 = formatUnit(toUnit.split("/")[1]);
+        if (fromUnit1 != toUnit1) conversion = conversions[fromUnit1 + "-" + toUnit1];
+        if (fromUnit2 != toUnit2) conversion /= conversions[fromUnit2 + "-" + toUnit2];
+
+        console.log(conversion);
+      } else if (fromUnit.includes("*")) {
+        fromUnit1 = formatUnit(fromUnit.split("*")[0]);
+        fromUnit2 = formatUnit(fromUnit.split("*")[1]);
+        toUnit1 = formatUnit(toUnit.split("*")[0]);
+        toUnit2 = formatUnit(toUnit.split("*")[1]);
+        if (fromUnit1 != toUnit1) conversion = conversions[fromUnit1 + "-" + toUnit1];
+        if (fromUnit2 != toUnit2) conversion *= conversions[fromUnit2 + "-" + toUnit2];
+      }
+    }
+    console.log(conversion, FromNumber, toUnit);
     result = parseFloat(FromNumber) * conversion;
     output.updateText(result + toUnit);
     if (key === 'Tab') {
