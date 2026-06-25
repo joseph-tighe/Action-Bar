@@ -1,0 +1,10 @@
+{
+    "name": "weather",
+    "file": "weather.js",
+    "RunFunction": "RunWeather",
+    "CheckFunction": null,
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}

@@ -17,7 +17,7 @@ ipcRenderer.on('open-file', (event, file) => {
 });
 var openningOutput = null;
 function runOpen(key, output) {
-    output.updateImage("../static/images/app.svg");
+    output.updateImage("extentions/open/app.svg");
     openningOutput = output;
     var appOrFile;
     let search = new Search();

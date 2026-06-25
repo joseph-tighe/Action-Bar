@@ -1,0 +1,10 @@
+{
+    "name": "ColorPicker",
+    "file": "colorPicker.js",
+    "RunFunction": "handleColorPicker",
+    "CheckFunction": null,
+    "copyFunction": "copyColorPicker",
+    "settings": {
+        "active": true
+    }
+}

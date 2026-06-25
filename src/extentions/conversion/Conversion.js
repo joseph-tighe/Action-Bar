@@ -244,7 +244,7 @@ function formatUnit(unit) {
 }
 function RunConverter(key, output) {
   if (canConvert() !== 'nothing') {
-    output.updateImage("../static/images/convert.svg");
+    output.updateImage("extentions/Conversion/convert.svg");
     let search = new Search();
     values = search.getQuery().split("to");
     if (values.length === 2) {

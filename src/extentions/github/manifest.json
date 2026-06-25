@@ -1,0 +1,10 @@
+{
+    "name": "github",
+    "file": "Github.js",
+    "RunFunction": "HandleGithub",
+    "CheckFunction": null,
+    "copyFunction": "copyGithub",
+    "settings": {
+        "active": true
+    }
+}

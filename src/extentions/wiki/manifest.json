@@ -1,0 +1,10 @@
+{
+    "name": "wiki",
+    "file": "wiki.js",
+    "RunFunction": "RunSearch",
+    "CheckFunction": null,
+    "copyFunction": null,
+    "settings": {
+        "active": false
+    }
+}

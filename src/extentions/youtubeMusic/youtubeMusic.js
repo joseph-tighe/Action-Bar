@@ -16,8 +16,8 @@ async function fetchAsyncMusic(q)
     return "";
 }
 
-function RunSearch(key, output) {
-    output.updateImage("../static/images/music.svg");
+function RunSearchMusic(key, output) {
+    output.updateImage("extentions/youtubeMusic/music.svg");
     let search = new Search();
     let val = search.getQuery();
     fetchAsyncMusic(val.replaceAll(" ", "+")).then(data => {

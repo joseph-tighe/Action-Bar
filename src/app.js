@@ -340,3 +340,12 @@ ipcMain.on('open-settings', (event) => {
 ipcMain.on('update-settings', (event, settings) => {
   fs.writeFileSync(path.join(__dirname, '../config/settings.json'), JSON.stringify(settings, null, 4));
 });
+ipcMain.on('get-extentions', (event) => {
+  fileList = [];
+  fs.readdirSync(path.join(__dirname, '/extentions')).forEach(file => {
+    if (fs.statSync(path.join(__dirname, '/extentions', file)).isDirectory()) {
+      fileList.push(file);
+    }
+  });
+  event.reply('get-extentions', fileList);
+});

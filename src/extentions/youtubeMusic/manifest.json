@@ -1,0 +1,10 @@
+{
+    "name": "music",
+    "file": "youtubeMusic.js",
+    "RunFunction": "RunSearchMusic",
+    "CheckFunction": null,
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}

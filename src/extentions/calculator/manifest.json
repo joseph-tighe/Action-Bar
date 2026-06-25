@@ -1,0 +1,10 @@
+{
+    "name": "Calculator",
+    "file": "calculator.js",
+    "RunFunction": "RunCalculator",
+    "CheckFunction": "canCalculate",
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}

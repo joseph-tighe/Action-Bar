@@ -18,11 +18,11 @@ async function fetchAsyncDDG(q)
   return "";
 }
 
-function RunSearch(key, output) {
-  output.updateImage("../static/images/DDG.svg");
+function RunDGG(key, output) {
+  output.updateImage("extentions/ddg/DDG.svg");
   let search = new Search();
   fetchAsyncDDG(search.getQuery().replaceAll(" ", "+")).then(data => {
-    output.updateImage("../static/images/DDG.svg");
+    output.updateImage("extentions/ddg/DDG.svg");
     if (data.RelatedTopics.length > 0 && search.isRelevant()) {
       output.updateText(data.RelatedTopics[0].Text);
     } else {

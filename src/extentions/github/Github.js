@@ -1,6 +1,6 @@
 lastSearches = {};
 function HandleGithub(key, output) {
-  output.updateImage("../static/images/github.svg");
+  output.updateImage("extentions/github/github.svg");
   let search = new Search();
   setTimeout(async () => {
     if (!search.isRelevant()) return;

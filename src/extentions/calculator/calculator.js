@@ -16,7 +16,7 @@ function canCalculate() {
 function RunCalculator(key, output) {
   if (canCalculate()) {
     search = new Search();
-    output.updateImage("../static/images/calculator.svg");
+    output.updateImage("extentions/calculator/calculator.svg");
     equation = search.getQuery();
     setNext = false;
     if (equation.includes("=") || (key === 'Enter' || key === 'Tab')) {

@@ -1,0 +1,10 @@
+{
+    "name": "converter",
+    "file": "Conversion.js",
+    "RunFunction": "RunConverter",
+    "CheckFunction": "canConvert",
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "timer",
+    "file": "timer.js",
+    "RunFunction": "RunTimer",
+    "CheckFunction": null,
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}

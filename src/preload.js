@@ -216,7 +216,6 @@ function callActionDefult(item, hasGone, e) {
         activeFeatures.push(settings["extensions"]['defult-extentions'][i]);
       }
     } else {
-      console.log("no results");
       const results = document.getElementById('results');
       for (const child of results.children) {
         results.removeChild(child);
@@ -280,8 +279,6 @@ getSearch().addEventListener('keyup', (e) => {
     for (let i = 0; i < wrappers.length; i++) {
       if (wrappers[i].classList.contains("selector")) {
         if (activeFeatures.length === 0) {
-          console.log(activeFeatures);
-          console.log(answerList);
           autocompleteEnter(answerList[i]);
         } else {
           runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i]);
@@ -328,7 +325,6 @@ getSearch().addEventListener('keyup', (e) => {
     var placeholderIndex = 1;
     setInterval(() => {
       search = getSearch();
-      console.log(search.placeholder, placeholders[placeholderIndex]);
       search.placeholder = placeholders[placeholderIndex];
       placeholderIndex = (placeholderIndex + 1) % placeholders.length;
     }, 3000);
@@ -388,12 +384,21 @@ function autocomplete(pressedKey) {
 }
 
 //Load extentions
-(async () => {
-  files = await fetch('extentions/extentions.json').then(response => response.json());
-  for (const file of Object.keys(files)) {
-    let data = files[file];
-    if (data.active) {
-      let code = await fetch(`extentions/${data.file}`).then(response => response.text());
+ipcRenderer.send('get-extentions');
+
+ipcRenderer.on('get-extentions', (event, files) => {
+  (async () => {
+  console.log(files);
+  manifests = {};
+  for (const file of files) {
+    let data = await fetch(`extentions/${file}/manifest.json`).then(response => response.json());
+    manifests[file] = data;
+  }
+  console.log(manifests);
+  for (const file of files) {
+    let data = manifests[file];
+    if (data.settings.active) {
+      let code = await fetch(`extentions/${file}/${data.file}`).then(response => response.text());
       eval(code); //make functions
       let feature = eval(`(() => {
       return {
@@ -408,4 +413,6 @@ function autocomplete(pressedKey) {
       copyFunctions.push(feature.copyFunction);
     }
   }
+  console.log(features);
 })();
+});

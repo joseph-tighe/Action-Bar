@@ -1,0 +1,10 @@
+{
+    "name": "open",
+    "file": "open.js",
+    "RunFunction": "runOpen",
+    "CheckFunction": null,
+    "copyFunction": "copyOpen",
+    "settings": {
+        "active": true
+    }
+}

@@ -27,7 +27,7 @@ async function fetchAsync(q)
 }
 
 function RunSearch(key, output) {
-  output.updateImage("../static/images/wiki.svg");
+  output.updateImage("extentions/wiki/wiki.svg");
   var val;
   search = new Search();
   val = search.getQuery();

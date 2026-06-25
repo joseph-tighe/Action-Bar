@@ -1,6 +1,6 @@
 function RunTimer(key, output) {
   var value;
-  output.updateImage("../static/images/timer.svg");
+  output.updateImage("extentions/timer/timer.svg");
   value = new Search().getQuery();
   let numbers = [""];
   for (const ch of value) {

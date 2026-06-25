@@ -1,0 +1,10 @@
+{
+    "name": "ddg",
+    "file": "DuckSearch.js",
+    "RunFunction": "RunDGG",
+    "CheckFunction": null,
+    "copyFunction": null,
+    "settings": {
+        "active": true
+    }
+}
