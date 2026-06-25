@@ -295,6 +295,17 @@ getSearch().addEventListener('keyup', (e) => {
     hasDone = false;
     callAction(e);
   }
+  
+  if (settings['style']['tips']) {
+    var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
+    var placeholderIndex = 1;
+    setInterval(() => {
+      search = getSearch();
+      console.log(search.placeholder, placeholders[placeholderIndex]);
+      search.placeholder = placeholders[placeholderIndex];
+      placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+    }, 3000);
+  }
 });
 
 
@@ -371,13 +382,3 @@ function autocomplete(pressedKey) {
     }
   }
 })();
-if (settings['style']['tips']) {
-  var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
-  var placeholderIndex = 1;
-  setInterval(() => {
-    search = getSearch();
-    console.log(search.placeholder, placeholders[placeholderIndex]);
-    search.placeholder = placeholders[placeholderIndex];
-    placeholderIndex = (placeholderIndex + 1) % placeholders.length;
-  }, 3000);
-}
