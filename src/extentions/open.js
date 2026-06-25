@@ -13,14 +13,6 @@ ipcRenderer.on('open-file', (event, file) => {
         img.alt = '';
         document.getElementsByClassName('found-image-wrapper')[0].appendChild(img);
         openningOutput.removeIcon();
-        /*var currentSearch = getSearch().value;
-        function func() {
-            if (getSearch().value != currentSearch) {
-                resultsEl.removeChild(document.getElementsByClassName('found-image-wrapper')[0]);
-                getSearch().removeEventListener("keyup",func);
-            }
-        }
-        getSearch().addEventListener("keyup", func)*/
     }
 });
 var openningOutput = null;
@@ -28,17 +20,12 @@ function runOpen(key, output) {
     output.updateImage("../static/images/app.svg");
     openningOutput = output;
     var appOrFile;
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().trim().split(" ");
-        values.shift();
-        appOrFile = values.join(" ");
-    } else {
-        appOrFile = getSearch().value.trim();
-    }
+    let search = new Search();
+    appOrFile = search.getQuery().trim();
     if (key === 'Tab') {
         x = document.getElementsByClassName('result')[0].textContent.split(" ");
         filePath = x.slice(2).join(" ");
-        getSearch().value = filePath;
+        search.setText(filePath);
     }
     if (appOrFile.length < 1 || (appOrFile == lastSearch && !(key === 'Enter'))) {
         if (appOrFile.length < 1) {

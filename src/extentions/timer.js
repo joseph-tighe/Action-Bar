@@ -1,13 +1,7 @@
 function RunTimer(key, output) {
   var value;
   output.updateImage("../static/images/timer.svg");
-  if (getSearch().value.includes(settings['tool-decloration-char'])) {
-    values = getSearch().value.split(" ");
-    values.shift();
-    value = values.join(" ");
-  } else {
-    value = getSearch().value;
-  }
+  value = new Search().getQuery();
   let numbers = [""];
   for (const ch of value) {
     if (/\d/.test(ch)) numbers[numbers.length-1] += ch;

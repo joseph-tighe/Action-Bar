@@ -20,25 +20,10 @@ async function fetchAsyncDDG(q)
 
 function RunSearch(key, output) {
   output.updateImage("../static/images/DDG.svg");
-  var val;
-  if (getSearch().value.includes(settings['tool-decloration-char'])) {
-    values = getSearch().value.split(" ");
-    values.shift();
-    val = values.join(" ");
-  } else {
-    val = getSearch().value;
-  }
-  fetchAsyncDDG(val.replaceAll(" ", "+")).then(data => {
+  let search = new Search();
+  fetchAsyncDDG(search.getQuery().replaceAll(" ", "+")).then(data => {
     output.updateImage("../static/images/DDG.svg");
-    var val2;
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
-        values.shift();
-        val2 = values.join(" ");
-    } else {
-        val2 = getSearch().value;
-    }
-    if (data.RelatedTopics.length > 0 && val == val2) {
+    if (data.RelatedTopics.length > 0 && search.isRelevant()) {
       output.updateText(data.RelatedTopics[0].Text);
     } else {
       output.destroy();

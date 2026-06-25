@@ -18,28 +18,13 @@ async function fetchAsyncMusic(q)
 
 function RunSearch(key, output) {
     output.updateImage("../static/images/music.svg");
-    var val;
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
-        values.shift();
-        val = values.join(" ");
-    } else {
-        val = getSearch().value;
-    }
-
+    let search = new Search();
+    let val = search.getQuery();
     fetchAsyncMusic(val.replaceAll(" ", "+")).then(data => {
-        var val2;
-        if (getSearch().value.includes(settings['tool-decloration-char'])) {
-            values = getSearch().value.split(" ");
-            values.shift();
-            val2 = values.join(" ");
-        } else {
-            val2 = getSearch().value;
-        }
-        if (data.recordings.length > 0 && val == val2) {
+        if (data.recordings.length > 0 && search.isRelevant()) {
             output.updateText(`Press enter to open ${data.recordings[0].title}`);
             if (key === 'Tab') {
-                getSearch().value = data.recordings[0].title;
+                search.setText(data.recordings[0].title);
             } else if (key === 'Enter') {
                 let location = val;
                 url = `https://music.youtube.com/search?q=${data.recordings[0].title}`;

@@ -29,23 +29,10 @@ async function fetchAsync(q)
 function RunSearch(key, output) {
   output.updateImage("../static/images/wiki.svg");
   var val;
-  if (getSearch().value.includes(settings['tool-decloration-char'])) {
-    values = getSearch().value.split(" ");
-    values.shift();
-    val = values.join(" ");
-  } else {
-    val = getSearch().value;
-  }
+  search = new Search();
+  val = search.getQuery();
   fetchAsync(val.replaceAll(" ", "+")).then(data => {
-    var val2;
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
-        values.shift();
-        val2 = values.join(" ");
-    } else {
-        val2 = getSearch().value;
-    }
-    if (data.pages.length > 0 && val == val2) {
+    if (data.pages.length > 0 && search.isRelevant()) {
       var text = "";
       const resultEl = document.getElementsByClassName('result')[0];
       for (const page of data.pages) {

@@ -1,25 +1,10 @@
 lastSearches = {};
 function HandleGithub(key, output) {
   output.updateImage("../static/images/github.svg");
-  var val;
-  //set Image
-  if (getSearch().value.includes(settings['tool-decloration-char'])) {
-    values = getSearch().value.split(" ");
-    values.shift();
-    val = values.join(" ");
-  } else {
-    val = getSearch().value;
-  }
+  let search = new Search();
   setTimeout(async () => {
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
-        values.shift();
-        val2 = values.join(" ");
-    } else {
-        val2 = getSearch().value;
-    }
-    if (val != val2) return;
-    val = val.replaceAll(" ", "+");
+    if (!search.isRelevant()) return;
+    val = search.getQuery().replaceAll(" ", "+");
     searchUrls = [
         `https://api.github.com/search/repositories?q=${val}`,
         `https://api.github.com/search/users?q=${val}`,
@@ -48,14 +33,7 @@ function HandleGithub(key, output) {
             }
         }
     }
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-        values = getSearch().value.split(" ");
-        values.shift();
-        val2 = values.join(" ");
-    } else {
-        val2 = getSearch().value;
-    }
-    if (val != val2.replaceAll(" ", "+")) return;
+    if (!search.isRelevant()) return;
     lastSearches[val] = response;
     output.updateText(rateLimit ? "Rate limit exceeded please try again in a bit" : response == null ? "No results" : `Press enter to open ${response.full_name}`);
     if (key === 'Enter') {

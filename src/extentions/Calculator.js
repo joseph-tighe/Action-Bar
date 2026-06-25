@@ -1,15 +1,8 @@
 function canCalculate() {
-  var s;
-  if (getSearch().value.includes(settings['tool-decloration-char'])) {
-    values = getSearch().value.split(" ");
-    values.shift();
-    s = values.join(" ");
-  } else {
-    s = getSearch().value;
-  }
+  let search = new Search();
   let isNumericChar = null;
   const numericChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '%', '.', ',', '^', '(', ')'];
-  for (item of s) {
+  for (item of search.getQuery()) {
     isNumericChar = numericChars.includes(item) || item == " " || item == "=" ? 'calculator' : null;
     if (isNumericChar) {
       
@@ -22,8 +15,9 @@ function canCalculate() {
 
 function RunCalculator(key, output) {
   if (canCalculate()) {
+    search = new Search();
     output.updateImage("../static/images/calculator.svg");
-    equation = getSearch().value;
+    equation = search.getQuery();
     setNext = false;
     if (equation.includes("=") || (key === 'Enter' || key === 'Tab')) {
       equation = equation.replace("=", "");
@@ -33,8 +27,7 @@ function RunCalculator(key, output) {
     const result = eval(equation);
     output.updateText(result);
     if (setNext) {
-      getSearch().value = result;
-      getSearch().focus();
+      search.setText(result);
     }
   }
 }

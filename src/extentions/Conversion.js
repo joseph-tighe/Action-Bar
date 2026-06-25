@@ -245,15 +245,8 @@ function formatUnit(unit) {
 function RunConverter(key, output) {
   if (canConvert() !== 'nothing') {
     output.updateImage("../static/images/convert.svg");
-    var value;
-    if (getSearch().value.includes(settings['tool-decloration-char'])) {
-      values = getSearch().value.split(" ");
-      values.shift();
-      valuesString = values.join(" ");
-    } else {
-      valuesString = getSearch().value;
-    }
-    values = valuesString.split("to");
+    let search = new Search();
+    values = search.getQuery().split("to");
     if (values.length === 2) {
       var from = values[0];
       var to = values[1];
@@ -269,7 +262,7 @@ function RunConverter(key, output) {
     result = parseFloat(FromNumber) * conversion;
     output.updateText(result + toUnit);
     if (key === 'Tab') {
-      getSearch().value = result + toUnit;
+      search.setText(result + toUnit);
     }
   } else {
     output.destroy();
@@ -277,9 +270,9 @@ function RunConverter(key, output) {
 }
 
 function canConvert() {
-  s = getSearch().value;
-  if (s.length === 0) return false;
-  if (s.includes(" to ")) {
+  s = new Search();
+  if (s.getQuery().length === 0) return false;
+  if (s.getQuery().includes(" to ")) {
     return 'converter';
   }
   return false;

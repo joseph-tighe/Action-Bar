@@ -11,7 +11,34 @@ var copyFunctions = [];
 var ResponseId = 0;
 var hasDone = false;
 var answerList = [];
-
+class Search {
+  constructor() {
+    this.text = getSearch().value;
+    this.prefix = this.text.split(" ")[0];
+    if (this.prefix[0] == settings['tool-decloration']['tool-decloration-char']) {
+      this.query = this.text.split(" ").splice(1).join(" ");
+    } else {
+      this.prefix = "";
+      this.query = this.text;
+    }
+  }
+  getFullText() {
+    return this.text;
+  }
+  getPrefix() {
+    return this.prefix;
+  }
+  getQuery() {
+    return this.query;
+  }
+  setText(text) {
+    this.text = text;
+    getSearch().value = text;
+  }
+  isRelevant() {
+    return this.text == getSearch().value;
+  }
+}
 class Answer {
   constructor(imageUrl, text) {
     this.text = text;
