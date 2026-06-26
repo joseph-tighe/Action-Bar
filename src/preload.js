@@ -241,7 +241,7 @@ function callActionCheck(item, hasGone, e) {
         activeFeatures.push(features[i]);
         let answer = new Answer("../static/images/icon.svg", "Loading...");
         answerList.push(answer);
-        runFunctions[i](e.key, answer);
+        runFunctions[i](e.key, answer, new Search());
         return true;
       }
     }
@@ -255,7 +255,7 @@ function callActionDefult(item, hasGone, e) {
         let answer = new Answer("../static/images/icon.svg", "Loading...");
         answer.setLoading(true);
         answerList.push(answer);
-        runFunctions[features.indexOf(settings["extensions"]['defult-extentions'][i])](e.key, answer);
+        runFunctions[features.indexOf(settings["extensions"]['defult-extentions'][i])](e.key, answer, new Search());
         activeFeatures.push(settings["extensions"]['defult-extentions'][i]);
       }
     } else {
@@ -340,7 +340,7 @@ getSearch().addEventListener('keyup', (e) => {
         if (activeFeatures.length === 0) {
           autocompleteEnter(answerList[i]);
         } else {
-          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i]);
+          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i], new Search());
         }
       }
     }
@@ -549,7 +549,7 @@ class Pipeline {
       } else {
         let fakeOutput = new PipelineAnswer("../static/images/icon.svg", instruction.action);
         console.log(instruction.action, features)
-        runFunctions[features.indexOf(instruction.action)]("a", fakeOutput);
+        runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, new Search());
         outputs.push(fakeOutput.getText());
         console.log(outputs)
       }
