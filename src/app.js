@@ -109,6 +109,18 @@ ipcMain.on('show-notification', (event, { title, body }) => {
 ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
 });
+ipcMain.handle('run-bash', async (event, command) => {
+  return new Promise((resolve, reject) => {
+    const normalizedCommand = String(command || '').trim().replace(/^\$\s*/, '');
+    exec(normalizedCommand, { encoding: 'utf8' }, (error, stdout, stderr) => {
+      if (error) {
+        reject(stderr || error.message);
+        return;
+      }
+      resolve(stdout.trim());
+    });
+  });
+});
 function levenshteinOptimized(a, b) {
   if (a === b) return 0;
   if (a.length > b.length) [a, b] = [b, a];
@@ -273,44 +285,48 @@ function findBestMatchFiles(query, candidates) {
     return findBestMatch(query, candidates);
   }
 }
-ipcMain.on('search-apps/files', (event, query) => {
+function resolvePathForQuery(query, shouldOpen) {
   try {
-    if (process.platform === 'win32') {
-      // On Windows open() prefers files; use cmd start to open an app by executable name:
-      appNames = appList.map(app => app.name);
-      closest = findBestMatch(query, appNames);
-      if (closest.score > 0.5) {
-        event.reply('open-file', { ok: true, file: closest['best'], action: "Found", type: "app" });
-        return;
-      } else {
-        closest =   findBestMatchFiles(query, filesForSearch);
-        event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Found", type: "file" });
-      }
+    if (process.platform !== 'win32') {
+      return { ok: false, file: null, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
     }
+
+    const appNames = appList.map(app => app.name);
+    let closest = findBestMatch(query, appNames);
+    if (closest && closest.score > 0.5) {
+      const appPath = appList[closest.index].path;
+      if (shouldOpen) {
+        exec(`start "" "${appPath}"`);
+      }
+      return { ok: true, file: appPath, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
+    }
+
+    closest = findBestMatchFiles(query, filesForSearch);
+    if (!closest || closest.best === undefined) {
+      return { ok: false, file: null, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
+    }
+
+    const filePath = filesHash[closest.best];
+    if (shouldOpen) {
+      exec(`start "" "${filePath}"`);
+    }
+    return { ok: true, file: filePath, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
   } catch (err) {
     console.error('Failed to open app', err);
+    return { ok: false, file: null, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
   }
+}
+
+ipcMain.handle('search-apps/files', async (event, query) => {
+  const result = resolvePathForQuery(query, false);
+  event.sender.send('open-file', result);
+  return result;
 });
 
-ipcMain.on('search-open-apps/files', (event, query) => {
-  try {
-    if (process.platform === 'win32') {
-      // On Windows open() prefers files; use cmd start to open an app by executable name:
-      appNames = appList.map(app => app.name);
-      closest = findBestMatch(query, appNames);
-      if (closest.score > 0.5) {
-        event.reply('open-file', { ok: true, file: closest['best'], action: "Open", type: "app" });
-        exec(`start "" "${appList[closest.index].path}"`);
-        return;
-      } else {
-        closest = findBestMatchFiles(query, filesForSearch);
-        event.reply('open-file', { ok: true, file: filesHash[closest.best], action: "Open", type: "file" });
-      }
-      exec(`start "" "${filesHash[closest.best]}"`);
-    }
-  } catch (err) {
-    console.error('Failed to open app', err);
-  }
+ipcMain.handle('search-open-apps/files', async (event, query) => {
+  const result = resolvePathForQuery(query, true);
+  event.sender.send('open-file', result);
+  return result;
 });
 ipcMain.on('close-window', (event) => {
   toggleWindowVisibility();

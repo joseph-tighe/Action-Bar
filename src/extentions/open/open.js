@@ -16,7 +16,7 @@ ipcRenderer.on('open-file', (event, file) => {
     }
 });
 var openningOutput = null;
-function runOpen(key, output, search) {
+async function runOpen(key, output, search) {
     output.updateImage("extentions/open/app.svg");
     openningOutput = output;
     var appOrFile;
@@ -34,11 +34,24 @@ function runOpen(key, output, search) {
         }
     };
     lastSearch = appOrFile;
+
+    let result;
     if (key === 'Enter') {
-        ipcRenderer.send('search-open-apps/files', appOrFile);
+        result = await ipcRenderer.invoke('search-open-apps/files', appOrFile);
     } else {
-        ipcRenderer.send('search-apps/files', appOrFile);
+        result = await ipcRenderer.invoke('search-apps/files', appOrFile);
     }
+
+    if (result && result.ok && result.file) {
+        output.updateText(result.file);
+        if (key === 'Tab') {
+            search.setText(result.file);
+        }
+        return result.file;
+    }
+
+    output.updateText("No results");
+    return null;
 }
 function copyOpen(text) {
   navigator.clipboard.writeText(text.split(" ").splice(2));

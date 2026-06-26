@@ -1,41 +1,59 @@
 [
     {
-        "call": "with open",
-        "name": "get Hash",
+        "id": "get-hash",
+        "name": "get-hash",
+        "trigger": "with open",
         "input": "search",
         "output": "answer",
-        "instructions": [
+        "steps": [
             {
+                "id": "file",
                 "action": "open",
-                "order": 0,
-                "inputs": [
-                    "input"
-                ],
-                "output": false
+                "inputs": [{"step": "input"}]
             },
             {
-                "action": "hash",
-                "order": 1,
+                "id": "command",
+                "action": "join",
                 "inputs": [
-                    0
-                ],
-                "output": true
+                    "certutil -hashfile \"",
+                    {"step": "file"},
+                    "\" SHA256"
+                ]
+            },
+            {
+                "id": "hash",
+                "action": "bash",
+                "inputs": [
+                   { "step": "command" }
+                ]
+            },
+            {
+                "id": "output",
+                "action": "output",
+                "inputs": [
+                    {"step": "hash"}
+                ]
             }
         ]
     },
     {
-        "call": "name",
+        "id": "clipboard-math",
         "name": "clipboard math",
+        "trigger": "call",
         "input": "clipboard",
         "output": "clipboard",
-        "instructions": [
+        "steps": [
             {
+                "id": "calculator",
                 "action": "calculator",
-                "order": 0,
+                "inputs": [{"step": "input"}]  
+            },
+            {
+                "id": "output",
+                "action": "output",
                 "inputs": [
-                    "input"
-                ],
-                "output": true
+                    {"step": "calculator"}
+                ]
             }
         ]
     }

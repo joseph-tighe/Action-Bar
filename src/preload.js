@@ -206,7 +206,15 @@ function openSetting() {
 function getSearch() { return document.getElementById('search'); }
 
 const isAsync = fn => fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
-
+function callPipeWith(feature) {
+  for (const pipe of pipelines) {
+    if (pipe.trigger.split(" ")[0] == "with" && pipe.trigger.split(" ")[1] == feature) {
+      const x = new Pipeline(pipe);
+      x.run().catch((error) => console.error("Pipeline failed:", error));
+      return;
+    }
+  }
+}
 function userSelection() {
   if (!settings['tool-decloration']['tool-declorable']) return 'nothing';
   value = getSearch().value.toLowerCase();
@@ -240,6 +248,7 @@ function callActionUserSelection(item, hasGone, e) {
       let answer = new Answer("../static/images/icon.svg", "Loading...");
       answerList.push(answer);
       runFunctions[i](e.key, answer, new Search());
+      callPipeWith(features[i]);
       return true;
     }
   }
@@ -266,6 +275,7 @@ function callActionCheck(item, hasGone, e) {
         let answer = new Answer("../static/images/icon.svg", "Loading...");
         answerList.push(answer);
         runFunctions[i](e.key, answer, new Search());
+        callPipeWith(features[i]);
         return true;
       }
     }
@@ -280,6 +290,7 @@ function callActionDefult(item, hasGone, e) {
         answer.setLoading(true);
         answerList.push(answer);
         runFunctions[features.indexOf(settings["extensions"]['defult-extentions'][i])](e.key, answer, new Search());
+        callPipeWith(settings["extensions"]['defult-extentions'][i]);
         activeFeatures.push(settings["extensions"]['defult-extentions'][i]);
       }
     } else {
@@ -346,7 +357,7 @@ getSearch().addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       name = search.value.split(settings['pipelines']['noting-char'])[1];
       for (const pipe in pipelines) {
-        if (pipelines[pipe].name == name) {
+        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call") {
           x = new Pipeline(pipelines[pipe]);
           x.run();
           return;
@@ -364,6 +375,7 @@ getSearch().addEventListener('keyup', (e) => {
           autocompleteEnter(answerList[i]);
         } else {
           runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i], new Search());
+          callPipeWith(activeFeatures[i]);
         }
       }
     }
@@ -459,7 +471,7 @@ function autocomplete(pressedKey) {
     feats.push("quit");
   }
   for (const pipe of pipelines) {
-    if ((settings['pipelines']['noting-char'] + pipe.name.toLowerCase()).includes(search.value.toLowerCase())) {
+    if (pipe.trigger == "call" && (settings['pipelines']['noting-char'] + pipe.name.toLowerCase()).includes(search.value.toLowerCase())) {
       feats.push(settings['pipelines']['noting-char'] + pipe.name);
     }
   }
@@ -477,13 +489,11 @@ ipcRenderer.send('get-extentions');
 
 ipcRenderer.on('get-extentions', (event, files) => {
   (async () => {
-  console.log(files);
   manifests = {};
   for (const file of files) {
     let data = await fetch(`extentions/${file}/manifest.json`).then(response => response.json());
     manifests[file] = data;
   }
-  console.log(manifests);
   for (const file of files) {
     let data = manifests[file];
     if (data.settings.active) {
@@ -502,12 +512,10 @@ ipcRenderer.on('get-extentions', (event, files) => {
       copyFunctions.push(feature.copyFunction);
     }
   }
-  console.log(features);
 })();
 });
 (async () => {
   pipelines = await fetch("pipelines/piplines.json").then(response => response.json());
-  console.log(pipelines);
 })();
 function getPipeline(name) {
   for (const pipeline of pipelines) {
@@ -522,7 +530,7 @@ class Pipeline {
     this.name = pipeline.name;
     this.input = pipeline.input;
     this.output = pipeline.output;
-    this.instructions = pipeline.instructions;
+    this.instructions = pipeline.steps;
   }
   resolveInput() {
     if (this.input === "clipboard") {
@@ -536,18 +544,19 @@ class Pipeline {
     }
     throw new Error("Invalid input");
   }
-  Output() {
-    console.log(this.outputs);
+  Output(value = this.lastOutput) {
+    if (value === undefined || value === null) return;
+
     switch (this.output) {
       case "clipboard":
-        navigator.clipboard.writeText(this.outputs[this.outputs.length - 1]);
+        navigator.clipboard.writeText(value);
         break;
       case "answer":
-        answer = new Answer("../static/images/icon.svg", this.outputs[this.outputs.length - 1]);
+        let answer = new Answer("../static/images/icon.svg", value);
         answerList.push(answer);
         break;
       case "search":
-        getSearch().value = this.outputs[this.outputs.length - 1];
+        getSearch().value = value;
         break;
       case "null":
         break;
@@ -559,28 +568,57 @@ class Pipeline {
 
   }
   async run() {
-    var input = await this.resolveInput();
-    this.outputs = [];
+    const input = await this.resolveInput();
+    this.outputs = { input };
+    this.lastOutput = input;
+    let emitted = false;
+
     for (const instruction of this.instructions) {
-      if (instruction.action === "hash") {
-        //outputs.push(await sha256(input));
-        break;
-      } else if (instruction.action.includes("+")) {
-        this.outputs.push(outpus[instruction.action.split("+")[0]] + instruction.action.split("+")[1]);
-      } else if (instruction.action[0] === "$") {
-        ipcRenderer.send('run-bash', instruction.action.slice(1));
-        this.outputs.push(null);
+      const X = [];
+      for (const instructionInput of instruction.inputs) {
+        if (instructionInput.step !== undefined) {
+          X.push(this.outputs[instructionInput.step]);
+        } else {
+          X.push(instructionInput);
+        }
+      }
+
+      if (instruction.action === "join") {
+        this.outputs[instruction.id] = X.join("");
+        this.lastOutput = this.outputs[instruction.id];
+      } else if (instruction.action === "bash") {
+        const commandText = typeof X[0] === 'string' ? X[0] : String(X[0] ?? '');
+        const normalizedCommand = commandText.trim().replace(/^\$\s*/, '');
+        const bashOutput = await ipcRenderer.invoke('run-bash', normalizedCommand);
+        this.outputs[instruction.id] = bashOutput;
+        this.lastOutput = this.outputs[instruction.id];
+      } else if (instruction.action === "output") {
+        this.outputs[instruction.id] = X[0];
+        this.lastOutput = this.outputs[instruction.id];
+        this.Output(this.lastOutput);
+        emitted = true;
       } else {
         let fakeOutput = new PipelineAnswer("../static/images/icon.svg", "");
-        let fakeSearch = new PipelineSearch(input);
+        let fakeSearch = new PipelineSearch(X[0]);
         if (isAsync(runFunctions[features.indexOf(instruction.action)])) {
           await runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
         } else {
           runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
         }
-        this.outputs.push(fakeOutput.getText());
+
+        const featureOutput = fakeOutput.getText();
+        const fallbackValue = typeof X[0] === 'string' ? X[0] : '';
+        const resolvedOutput = featureOutput && !/^(Loading\.\.\.|No results|Press enter to open)$/.test(featureOutput)
+          ? featureOutput
+          : fallbackValue;
+
+        this.outputs[instruction.id] = resolvedOutput;
+        this.lastOutput = this.outputs[instruction.id];
       }
     }
-    this.Output();
+
+    if (!emitted) {
+      this.Output(this.lastOutput);
+    }
   }
 }
