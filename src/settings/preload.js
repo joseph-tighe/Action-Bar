@@ -1,104 +1,197 @@
 const ipc = require('electron').ipcRenderer;
-var settings = {};
-fetch("../../config/settings.json").then(response => response.json()).then(data => {
-  settings = data;
-  console.log(settings);
-  for (const key in settings) {
-    document.getElementsByClassName("sidebar")[0].innerHTML += `<div class="item">${key}</div>`;
-  }
-  for (i = 0; i < document.getElementsByClassName("item").length; i++) {
-    document.getElementsByClassName("item")[i].addEventListener("click", function() {
-      openSetting(this.innerHTML);
-    });
-  }
-  saveBtn = document.createElement("button");
-  saveBtn.innerHTML = "Save";
-  saveBtn.addEventListener("click", () => {
-    ipc.send('update-settings', settings);
-  });
-  document.getElementsByClassName("sidebar")[0].appendChild(saveBtn);
-});
-function openSetting(key) {
-    content = document.getElementsByClassName("content")[0];
-    content.innerHTML = "";
-    for (const key1 in settings[key]) {
-        showItem(key1, settings[key][key1], content, [key]);
-    }
-}
-function showItem(key, item, DOMwrapper, keys) {
-    if (typeof item === "object") {
-        if (Array.isArray(item)) {
-            let section = document.createElement("div");
-            section.className = "section";
-            let header = document.createElement("h2");
-            header.innerHTML = key;
-            DOMwrapper.appendChild(header);
-            DOMwrapper.appendChild(section);
-            header.addEventListener("click", ()=>{
-                section.style.maxHeight = section.style.maxHeight == "0px" ? "100vh" : "0px";
-            });
-            section.style.maxHeight = "0px";
-            for (const key in item) {
-                showItem(key, item[key], section, keys.concat(key));
-            }
-            add = document.createElement("button");
-            add.innerHTML = "Add";
-            add.addEventListener("click", () => {
-                item.push("");
-                showItem(item.length - 1, "", section, keys.concat(key));
-            });
-            section.appendChild(add);
-        } else {
-            let section = document.createElement("div");
-            section.className = "section";
-            let header = document.createElement("h2");
-            header.innerHTML = key;
-            DOMwrapper.appendChild(header);
-            DOMwrapper.appendChild(section);
-            header.addEventListener("click", ()=>{
-                section.style.maxHeight = section.style.maxHeight == "0px" ? "100vh" : "0px";
-            });
-            section.style.maxHeight = "0px";
-            for (const key in item) {
-                showItem(key, item[key], section, keys.concat(key));
-            }
-        }
-    } else if (typeof item === "string" || typeof item === "number") {
-        section = document.createElement("div");
-        section.className = "item";
-        DOMwrapper.appendChild(section);
-        input = document.createElement("input");
-        input.type = "text";
-        input.value = item;
-        input.addEventListener("change", () => {
-            if (typeof item === "number") {
-                item = parseFloat(input.value);
-            } else {
-                item = input.value;
-            }
-            addItem(keys.concat(key), item);
-        });
-        section.innerHTML = `<div class="item">${key}:</div>`;
-        section.getElementsByClassName("item")[section.getElementsByClassName("item").length - 1].appendChild(input);
-    } else if (typeof item === "boolean") {
-        section = document.createElement("div");
-        section.className = "item";
-        DOMwrapper.appendChild(section);
-        input = document.createElement("input");
-        input.type = "checkbox";
-        input.checked = item;
-        input.addEventListener("change", () => {
-            addItem(keys.concat(key), input.checked);
-        });
-        section.innerHTML = `<div class="item">${key}:</div>`;
-        section.getElementsByClassName("item")[section.getElementsByClassName("item").length - 1].appendChild(input);
+window.addEventListener('DOMContentLoaded', () => {
+let settings = {};
+let currentGroup = null;
 
+const sidebarList = document.querySelector('.sidebar-list');
+const contentBody = document.querySelector('.content-body');
+const contentHeader = document.querySelector('.content-header');
+const saveBtn = document.getElementById('saveBtn');
+
+fetch('../../config/settings.json')
+  .then(response => response.json())
+  .then(data => {
+    settings = data;
+    renderSidebar();
+    const firstKey = Object.keys(settings)[0];
+    if (firstKey) {
+      openSetting(firstKey);
     }
+  });
+
+saveBtn.addEventListener('click', () => {
+  ipc.send('update-settings', settings);
+});
+
+function formatLabel(text) {
+  return String(text)
+    .replace(/-/g, ' ')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
 }
-function addItem(keys, item) {
-    let X = settings;
-    for (let i = 0; i < keys.length - 1; i++) {
-        X = settings[keys[i]]
-    }
-    X[keys[keys.length - 1]] = item;
+
+function renderSidebar() {
+  sidebarList.innerHTML = '';
+  Object.keys(settings).forEach(key => {
+    const item = document.createElement('button');
+    item.className = 'sidebar-item';
+    item.textContent = formatLabel(key);
+    item.addEventListener('click', () => openSetting(key));
+    sidebarList.appendChild(item);
+  });
 }
+
+function openSetting(key) {
+  currentGroup = key;
+  contentHeader.textContent = formatLabel(key);
+  contentBody.innerHTML = '';
+
+  const group = settings[key];
+  if (group && typeof group === 'object' && !Array.isArray(group)) {
+    renderGroup(group, contentBody, [key]);
+  } else {
+    contentBody.innerHTML = '<div class="empty-state">No settings available.</div>';
+  }
+
+  Array.from(sidebarList.children).forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase() === formatLabel(key).toLowerCase());
+  });
+}
+
+function renderGroup(value, parent, path) {
+  if (Array.isArray(value)) {
+    const card = createCard(path[path.length - 1]);
+    const body = card.querySelector('.section-body');
+
+    value.forEach((item, index) => {
+      renderArrayItem(item, body, path.concat(index));
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-btn';
+    addBtn.textContent = 'Add item';
+    addBtn.addEventListener('click', () => {
+      value.push('');
+      renderGroup(value, parent, path);
+      openSetting(currentGroup);
+    });
+
+    body.appendChild(addBtn);
+    parent.appendChild(card);
+    return;
+  }
+
+  if (value && typeof value === 'object') {
+    const card = createCard(path[path.length - 1]);
+    const body = card.querySelector('.section-body');
+
+    Object.entries(value).forEach(([key, child]) => {
+      renderGroup(child, body, path.concat(key));
+    });
+
+    parent.appendChild(card);
+    return;
+  }
+
+  renderControl(value, parent, path);
+}
+
+function createCard(title) {
+  const card = document.createElement('section');
+  card.className = 'section-card';
+
+  const heading = document.createElement('h2');
+  heading.textContent = formatLabel(title);
+
+  const body = document.createElement('div');
+  body.className = 'section-body';
+
+  card.appendChild(heading);
+  card.appendChild(body);
+  return card;
+}
+
+function renderControl(value, parent, path) {
+  const row = document.createElement('div');
+  row.className = 'setting-row';
+
+  const label = document.createElement('div');
+  label.className = 'setting-label';
+  label.textContent = formatLabel(path[path.length - 1]);
+
+  const control = document.createElement('div');
+  control.className = 'setting-control';
+
+  if (typeof value === 'boolean') {
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = value;
+    input.addEventListener('change', () => {
+      updateValue(path, input.checked);
+    });
+    control.appendChild(input);
+  } else if (typeof value === 'number') {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.value = value;
+    input.addEventListener('change', () => {
+      updateValue(path, Number(input.value));
+    });
+    control.appendChild(input);
+  } else {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.addEventListener('change', () => {
+      updateValue(path, input.value);
+    });
+    control.appendChild(input);
+  }
+
+  row.appendChild(label);
+  row.appendChild(control);
+  parent.appendChild(row);
+}
+
+function renderArrayItem(item, parent, path) {
+  const row = document.createElement('div');
+  row.className = 'array-row';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = item;
+
+  const removeBtn = document.createElement('button');
+  removeBtn.textContent = 'Remove';
+  removeBtn.addEventListener('click', () => {
+    const arr = getByPath(path.slice(0, -1));
+    arr.splice(path[path.length - 1], 1);
+    openSetting(currentGroup);
+  });
+
+  input.addEventListener('change', () => {
+    const arr = getByPath(path.slice(0, -1));
+    arr[path[path.length - 1]] = input.value;
+  });
+
+  row.appendChild(input);
+  row.appendChild(removeBtn);
+  parent.appendChild(row);
+}
+
+function updateValue(path, value) {
+  let target = settings;
+  for (let i = 0; i < path.length - 1; i++) {
+    target = target[path[i]];
+  }
+  target[path[path.length - 1]] = value;
+}
+
+function getByPath(path) {
+  let target = settings;
+  for (const key of path) {
+    target = target[key];
+  }
+  return target;
+}
+});
