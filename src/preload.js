@@ -132,7 +132,29 @@ class Answer {
     this.resultEl.appendChild(this.img);
   }
 }
-
+class PipelineSearch {
+  constructor(text) {
+    this.text = text;
+    this.prefix = "";
+    this.query = this.text;
+  }
+  getFullText() {
+    return this.text;
+  }
+  getPrefix() {
+    return this.prefix;
+  }
+  getQuery() {
+    return this.query;
+  }
+  setText(text) {
+    this.text = text;
+    getSearch().value = text;
+  }
+  isRelevant() {
+    return this.text == getSearch().value;
+  }
+}
 class PipelineAnswer {
   constructor(imageUrl, text) {
     this.text = text;
@@ -182,6 +204,8 @@ function openSetting() {
 }
 
 function getSearch() { return document.getElementById('search'); }
+
+const isAsync = fn => fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
 
 function userSelection() {
   if (!settings['tool-decloration']['tool-declorable']) return 'nothing';
@@ -323,7 +347,6 @@ getSearch().addEventListener('keyup', (e) => {
       name = search.value.split(settings['pipelines']['noting-char'])[1];
       for (const pipe in pipelines) {
         if (pipelines[pipe].name == name) {
-          console.log(pipelines[pipe])
           x = new Pipeline(pipelines[pipe]);
           x.run();
           return;
@@ -514,16 +537,17 @@ class Pipeline {
     throw new Error("Invalid input");
   }
   Output() {
+    console.log(this.outputs);
     switch (this.output) {
       case "clipboard":
-        navigator.clipboard.writeText(outputs[outputs.length - 1]);
+        navigator.clipboard.writeText(this.outputs[this.outputs.length - 1]);
         break;
       case "answer":
-        answer = new Answer("../static/images/icon.svg", outputs[outputs.length - 1]);
+        answer = new Answer("../static/images/icon.svg", this.outputs[this.outputs.length - 1]);
         answerList.push(answer);
         break;
       case "search":
-        getSearch().value = outputs[outputs.length - 1];
+        getSearch().value = this.outputs[this.outputs.length - 1];
         break;
       case "null":
         break;
@@ -534,25 +558,29 @@ class Pipeline {
   runInstructions() {
 
   }
-  run() {
-    this.input = this.resolveInput();
+  async run() {
+    var input = await this.resolveInput();
     this.outputs = [];
     for (const instruction of this.instructions) {
       if (instruction.action === "hash") {
         //outputs.push(await sha256(input));
         break;
       } else if (instruction.action.includes("+")) {
-        outputs.push(outpus[instruction.action.split("+")[0]] + instruction.action.split("+")[1]);
+        this.outputs.push(outpus[instruction.action.split("+")[0]] + instruction.action.split("+")[1]);
       } else if (instruction.action[0] === "$") {
         ipcRenderer.send('run-bash', instruction.action.slice(1));
-        outputs.push(null);
+        this.outputs.push(null);
       } else {
-        let fakeOutput = new PipelineAnswer("../static/images/icon.svg", instruction.action);
-        console.log(instruction.action, features)
-        runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, new Search());
-        outputs.push(fakeOutput.getText());
-        console.log(outputs)
+        let fakeOutput = new PipelineAnswer("../static/images/icon.svg", "");
+        let fakeSearch = new PipelineSearch(input);
+        if (isAsync(runFunctions[features.indexOf(instruction.action)])) {
+          await runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
+        } else {
+          runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
+        }
+        this.outputs.push(fakeOutput.getText());
       }
     }
+    this.Output();
   }
 }

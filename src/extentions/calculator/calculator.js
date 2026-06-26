@@ -12,9 +12,22 @@ function canCalculate() {
   }
   return isNumericChar;
 }
+function canCalculateWithInput(search) {
+  let isNumericChar = false;
+  const numericChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '%', '.', ',', '^', '(', ')'];
+  for (item of search.getQuery()) {
+    isNumericChar = numericChars.includes(item) || item == " " || item == "=" ? 'calculator' : null;
+    if (isNumericChar) {
+      
+    } else {
+      break;
+    }
+  }
+  return isNumericChar;
+}
 
 function RunCalculator(key, output, search) {
-  if (canCalculate()) {
+  if (canCalculateWithInput(search)) {
     output.updateImage("extentions/calculator/calculator.svg");
     equation = search.getQuery();
     setNext = false;
