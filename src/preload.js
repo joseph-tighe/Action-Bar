@@ -11,6 +11,7 @@ var copyFunctions = [];
 var ResponseId = 0;
 var hasDone = false;
 var answerList = [];
+var pipelines = [];
 class Search {
   constructor() {
     this.text = getSearch().value;
@@ -132,6 +133,40 @@ class Answer {
   }
 }
 
+class PipelineAnswer {
+  constructor(imageUrl, text) {
+    this.text = text;
+    this.imageUrl = imageUrl;
+    this.img = {src:null};
+    this.wrapper = null;
+  }
+  getText() {
+    return this.text;
+  }
+  getImageUrl() {
+    return this.imageUrl;
+  }
+  getWrapper() {
+    return this.wrapper;
+  }
+  destroy() {
+    this.wrapper.remove();
+  }
+  removeIcon() {
+    this.resultEl.removeChild(this.img);
+  }
+  addIcon() {
+    this.resultEl.appendChild(this.img);
+  }
+  updateText(text) {
+    this.text = text;
+  }
+  updateImage(imageUrl) {
+    this.imageUrl = imageUrl;
+    this.img.src = imageUrl;
+  }
+}
+
 fetch("../config/settings.json").then(response => response.json()).then(data => {
   settings = data;
   settingsLoaded = true;
@@ -161,6 +196,14 @@ function userSelection() {
       return 'quit';
     } else if (value.split(" ")[0].includes("settings")) {
       return 'settings';
+    }
+    return 'autocomplete';
+  } else if (value[0] == settings['pipelines']['noting-char']) {
+    for (const key in pipelines) {
+      let pipe = pipelines[key];
+      if (value.split(" ")[0].includes(pipe.name.toLowerCase())) {
+        return pipe.name;
+      }
     }
     return 'autocomplete';
   }
@@ -273,6 +316,22 @@ getSearch().addEventListener('keyup', (e) => {
     return;
   }
 
+  
+  search = getSearch();
+  if (search.value[0] == (settings['pipelines']['noting-char'])) {
+    if (e.key === 'Enter') {
+      name = search.value.split(settings['pipelines']['noting-char'])[1];
+      for (const pipe in pipelines) {
+        if (pipelines[pipe].name == name) {
+          console.log(pipelines[pipe])
+          x = new Pipeline(pipelines[pipe]);
+          x.run();
+          return;
+        }
+      }
+    }
+  }
+
   if (e.key === "Enter" || e.key === "Tab") {
     if (wrappers.length === 0) return;
 
@@ -367,18 +426,23 @@ function autocomplete(pressedKey) {
   const search = getSearch();
   var feats = [];
   for (const feature of features) {
-    if (("@" + feature.toLowerCase()).includes(search.value.toLowerCase())) {
+    if ((settings['tool-decloration']['tool-decloration-char'] + feature.toLowerCase()).includes(search.value.toLowerCase())) {
       feats.push(feature);
     }
   }
-  if (("@settings").includes(search.value.toLowerCase())) {
+  if ((settings['tool-decloration']['tool-decloration-char'] + "settings").includes(search.value.toLowerCase())) {
     feats.push("settings");
-  } else if (("@quit").includes(search.value.toLowerCase())) {
+  } else if ((settings['tool-decloration']['tool-decloration-char'] + "quit").includes(search.value.toLowerCase())) {
     feats.push("quit");
+  }
+  for (const pipe of pipelines) {
+    if ((settings['pipelines']['noting-char'] + pipe.name.toLowerCase()).includes(search.value.toLowerCase())) {
+      feats.push(settings['pipelines']['noting-char'] + pipe.name);
+    }
   }
   c = 0;
   for (const feat of feats) {
-    let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `@${feat}`);
+    let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `${settings['pipelines']['noting-char'] != feat[0] ? settings['tool-decloration']['tool-decloration-char'] : settings['pipelines']['noting-char']}${feat[0] == settings['pipelines']['noting-char'] ? feat.slice(1) : feat}`);
     answerList.push(answer);
     c++;
     if (c == settings["answers"]["max-amount"]) break;
@@ -409,7 +473,7 @@ ipcRenderer.on('get-extentions', (event, files) => {
         "copyFunction": ${data.copyFunction}
       }  
     })();`);
-      features.push(data.name);
+      features.push(data.name.toLowerCase());
       runFunctions.push(feature.RunFunction);
       checkFunctions.push(feature.CheckFunction);
       copyFunctions.push(feature.copyFunction);
@@ -418,3 +482,74 @@ ipcRenderer.on('get-extentions', (event, files) => {
   console.log(features);
 })();
 });
+(async () => {
+  pipelines = await fetch("pipelines/piplines.json").then(response => response.json());
+  console.log(pipelines);
+})();
+function getPipeline(name) {
+  for (const pipeline of pipelines) {
+    if (pipeline.name === name) {
+      return pipeline;
+    }
+  }
+  return null;
+}
+class Pipeline {
+  constructor (pipeline) {
+    this.name = pipeline.name;
+    this.input = pipeline.input;
+    this.output = pipeline.output;
+    this.instructions = pipeline.instructions;
+  }
+  resolveInput() {
+    if (this.input === "clipboard") {
+      return navigator.clipboard.readText();
+    }
+    if (this.input === "search") {
+      return getSearch().value;
+    }
+    if (this.input === "static") {
+      return getSearch().value;
+    }
+    throw new Error("Invalid input");
+  }
+  Output() {
+    switch (this.output) {
+      case "clipboard":
+        navigator.clipboard.writeText(outputs[outputs.length - 1]);
+        break;
+      case "answer":
+        answer = new Answer("../static/images/icon.svg", outputs[outputs.length - 1]);
+        answerList.push(answer);
+        break;
+      case "search":
+        getSearch().value = outputs[outputs.length - 1];
+        break;
+      case "null":
+        break;
+      default:
+        throw new Error("Invalid output");
+    }
+  }
+  run() {
+    let input = this.resolveInput();
+    let outputs = [];
+    for (const instruction of this.instructions) {
+      if (instruction.action === "hash") {
+        //outputs.push(await sha256(input));
+        break;
+      } else if (instruction.action.includes("+")) {
+        outputs.push(outpus[instruction.action.split("+")[0]] + instruction.action.split("+")[1]);
+      } else if (instruction.action[0] === "$") {
+        ipcRenderer.send('run-bash', instruction.action.slice(1));
+        outputs.push(null);
+      } else {
+        let fakeOutput = new PipelineAnswer("../static/images/icon.svg", instruction.action);
+        console.log(instruction.action, features)
+        runFunctions[features.indexOf(instruction.action)]("a", fakeOutput);
+        outputs.push(fakeOutput.getText());
+        console.log(outputs)
+      }
+    }
+  }
+}

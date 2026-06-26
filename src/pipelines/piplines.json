@@ -1,0 +1,42 @@
+[
+    {
+        "call": "with open",
+        "name": "get Hash",
+        "input": "search",
+        "output": "answer",
+        "instructions": [
+            {
+                "action": "open",
+                "order": 0,
+                "inputs": [
+                    "input"
+                ],
+                "output": false
+            },
+            {
+                "action": "hash",
+                "order": 1,
+                "inputs": [
+                    0
+                ],
+                "output": true
+            }
+        ]
+    },
+    {
+        "call": "name",
+        "name": "clipboard math",
+        "input": "clipboard",
+        "output": "clipboard",
+        "instructions": [
+            {
+                "action": "calculator",
+                "order": 0,
+                "inputs": [
+                    "input"
+                ],
+                "output": true
+            }
+        ]
+    }
+]
