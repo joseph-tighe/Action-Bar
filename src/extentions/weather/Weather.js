@@ -1,7 +1,7 @@
-function RunWeather(key, output) {
+function RunWeather(key, output, search) {
   var val;
   output.updateImage("extentions/weather/weather.svg");
-  val = new Search().getQuery();
+  val = search.getQuery();
   output.updateText(`Press enter to get the weather for ${val == "" ? "your current location" : val}`);
   if (key === 'Enter') {
     let location = val;

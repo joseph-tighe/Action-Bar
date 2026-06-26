@@ -13,9 +13,8 @@ function canCalculate() {
   return isNumericChar;
 }
 
-function RunCalculator(key, output) {
+function RunCalculator(key, output, search) {
   if (canCalculate()) {
-    search = new Search();
     output.updateImage("extentions/calculator/calculator.svg");
     equation = search.getQuery();
     setNext = false;

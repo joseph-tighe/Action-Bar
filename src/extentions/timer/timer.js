@@ -1,7 +1,7 @@
-function RunTimer(key, output) {
+function RunTimer(key, output, search) {
   var value;
   output.updateImage("extentions/timer/timer.svg");
-  value = new Search().getQuery();
+  value = search.getQuery();
   let numbers = [""];
   for (const ch of value) {
     if (/\d/.test(ch)) numbers[numbers.length-1] += ch;

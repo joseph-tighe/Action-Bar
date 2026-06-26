@@ -262,10 +262,9 @@ function formatUnit(unit) {
   }
   return unit;
 }
-function RunConverter(key, output) {
+function RunConverter(key, output, search) {
   if (canConvert() !== 'nothing') {
     output.updateImage("extentions/Conversion/convert.svg");
-    let search = new Search();
     values = search.getQuery().split("to");
     if (values.length === 2) {
       var from = values[0];

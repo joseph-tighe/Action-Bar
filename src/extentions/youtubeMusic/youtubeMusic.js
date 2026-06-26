@@ -16,9 +16,8 @@ async function fetchAsyncMusic(q)
     return "";
 }
 
-function RunSearchMusic(key, output) {
+function RunSearchMusic(key, output, search) {
     output.updateImage("extentions/youtubeMusic/music.svg");
-    let search = new Search();
     let val = search.getQuery();
     fetchAsyncMusic(val.replaceAll(" ", "+")).then(data => {
         if (data.recordings.length > 0 && search.isRelevant()) {

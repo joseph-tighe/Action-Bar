@@ -26,10 +26,9 @@ async function fetchAsync(q)
   return "";
 }
 
-function RunSearch(key, output) {
+function RunSearch(key, output, search) {
   output.updateImage("extentions/wiki/wiki.svg");
   var val;
-  search = new Search();
   val = search.getQuery();
   fetchAsync(val.replaceAll(" ", "+")).then(data => {
     if (data.pages.length > 0 && search.isRelevant()) {

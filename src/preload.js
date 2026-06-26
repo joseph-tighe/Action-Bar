@@ -215,7 +215,7 @@ function callActionUserSelection(item, hasGone, e) {
       activeFeatures.push(features[i]);
       let answer = new Answer("../static/images/icon.svg", "Loading...");
       answerList.push(answer);
-      runFunctions[i](e.key, answer);
+      runFunctions[i](e.key, answer, new Search());
       return true;
     }
   }
@@ -531,9 +531,12 @@ class Pipeline {
         throw new Error("Invalid output");
     }
   }
+  runInstructions() {
+
+  }
   run() {
-    let input = this.resolveInput();
-    let outputs = [];
+    this.input = this.resolveInput();
+    this.outputs = [];
     for (const instruction of this.instructions) {
       if (instruction.action === "hash") {
         //outputs.push(await sha256(input));

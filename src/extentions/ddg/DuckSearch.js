@@ -18,9 +18,8 @@ async function fetchAsyncDDG(q)
   return "";
 }
 
-function RunDGG(key, output) {
+function RunDGG(key, output, search) {
   output.updateImage("extentions/ddg/DDG.svg");
-  let search = new Search();
   fetchAsyncDDG(search.getQuery().replaceAll(" ", "+")).then(data => {
     output.updateImage("extentions/ddg/DDG.svg");
     if (data.RelatedTopics.length > 0 && search.isRelevant()) {

@@ -1,7 +1,6 @@
 lastSearches = {};
-function HandleGithub(key, output) {
+function HandleGithub(key, output, search) {
   output.updateImage("extentions/github/github.svg");
-  let search = new Search();
   setTimeout(async () => {
     if (!search.isRelevant()) return;
     val = search.getQuery().replaceAll(" ", "+");

@@ -16,11 +16,10 @@ ipcRenderer.on('open-file', (event, file) => {
     }
 });
 var openningOutput = null;
-function runOpen(key, output) {
+function runOpen(key, output, search) {
     output.updateImage("extentions/open/app.svg");
     openningOutput = output;
     var appOrFile;
-    let search = new Search();
     appOrFile = search.getQuery().trim();
     if (key === 'Tab') {
         x = document.getElementsByClassName('result')[0].textContent.split(" ");
