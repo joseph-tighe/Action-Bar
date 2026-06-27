@@ -39,8 +39,44 @@ function renderSidebar() {
     item.addEventListener('click', () => openSetting(key));
     sidebarList.appendChild(item);
   });
+  const extentionDownload = document.createElement('button');
+  extentionDownload.className = 'sidebar-item';
+  extentionDownload.textContent = 'Download Extentions';
+  extentionDownload.addEventListener('click', openExtensionStore);
+  sidebarList.appendChild(extentionDownload);
 }
+function openExtensionStore() {
+    // Text Input < put github repo here
+    //
+    // Btn List
+    contentHeader.textContent = "Download Extentions";
+    contentBody.innerHTML = '';
+    const InputLabel = document.createElement('label');
+    InputLabel.textContent = "If you have a github repo, you can download extentions using this textbox";
+    contentBody.appendChild(InputLabel);
+    const Input = document.createElement('input');
+    Input.id = 'extention-store-input';
+    Input.type = 'text';
+    Input.placeholder = 'joseph-tighe/calculator';
+    Input.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            ipc.send('download-extention', document.getElementById('extention-store-input').value);
+        }
+    });
+    contentBody.appendChild(Input);
+    const breaker = document.createElement('br');
+    contentBody.appendChild(breaker);
+    recommendedExtentions = ["joseph-tighe/colorPicker", "joseph-tighe/calculator", "joseph-tighe/timer", "joseph-tighe/ddg", "joseph-tighe/open", "joseph-tighe/wikipedia", "joseph-tighe/youtubeMusic", "joseph-tighe/github", "joseph-tighe/conversion", "joseph-tighe/calculator"];
+    for (const extention of recommendedExtentions) {
+        let btn = document.createElement('button');
+        btn.textContent = extention.split("/").pop() + " by " + extention.split("/")[0];
+        btn.addEventListener('click', () => {
+            ipc.send('download-extention', extention);
+        });
+        contentBody.appendChild(btn);
+    }
 
+}
 function openSetting(key) {
   currentGroup = key;
   contentHeader.textContent = formatLabel(key);

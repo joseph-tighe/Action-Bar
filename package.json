@@ -29,6 +29,7 @@
     "electron-builder": "^26.15.3"
   },
   "dependencies": {
+    "adm-zip": "^0.5.17",
     "open": "^11.0.0"
   }
 }

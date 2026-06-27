@@ -3,6 +3,8 @@ const path = require('node:path')
 const fs = require('fs');
 const open = require('open');
 const { exec } = require('child_process');
+const https = require('https');
+const AdmZip = require('adm-zip');
 
 let tray = null;
 
@@ -10,7 +12,7 @@ app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/settings.json')));
 
-function createWindow () {
+function createWindow() {
   const win = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
@@ -36,7 +38,7 @@ app.whenReady().then(() => {
     if (mainWindow.isVisible()) {
       mainWindow.hide();
     } else {
-      mainWindow.setPosition(screen.getPrimaryDisplay().workArea.x/2, screen.getPrimaryDisplay().workArea.y/2, true);
+      mainWindow.setPosition(screen.getPrimaryDisplay().workArea.x / 2, screen.getPrimaryDisplay().workArea.y / 2, true);
       mainWindow.show();
     }
   })
@@ -76,7 +78,7 @@ app.on('will-quit', () => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
-    
+
   }
 })
 function toggleWindowVisibility() {
@@ -86,9 +88,9 @@ function toggleWindowVisibility() {
     if (settings['summon']['change-screen']) {
       scr = getScreen();
       if (settings['summon']['summon-on-mouse']) {
-        mainWindow.setPosition(screen.getCursorScreenPoint().x-mainWindow.getSize()[0]/2, screen.getCursorScreenPoint().y-settings['summon']['vertical-offset'], true);
+        mainWindow.setPosition(screen.getCursorScreenPoint().x - mainWindow.getSize()[0] / 2, screen.getCursorScreenPoint().y - settings['summon']['vertical-offset'], true);
       } else {
-        mainWindow.setPosition(Math.round(scr.workArea.x+scr.bounds.width/2-mainWindow.getSize()[0]/2), Math.round(scr.workArea.y+scr.bounds.height/2-settings['summon']['vertical-offset']), true);
+        mainWindow.setPosition(Math.round(scr.workArea.x + scr.bounds.width / 2 - mainWindow.getSize()[0] / 2), Math.round(scr.workArea.y + scr.bounds.height / 2 - settings['summon']['vertical-offset']), true);
       }
     }
     mainWindow.show();
@@ -104,10 +106,10 @@ function getScreen() {
   return screen.getPrimaryDisplay();
 }
 ipcMain.on('show-notification', (event, { title, body }) => {
-    new Notification({ title, body }).show();
+  new Notification({ title, body }).show();
 });
 ipcMain.on('open-url', (event, url) => {
-    shell.openExternal(url);
+  shell.openExternal(url);
 });
 ipcMain.handle('run-bash', async (event, command) => {
   return new Promise((resolve, reject) => {
@@ -142,7 +144,7 @@ function levenshteinOptimized(a, b) {
 
 function normalize(s) {
   return s.normalize('NFKD').replace(/\p{Diacritic}/gu, '') // remove accents
-           .toLowerCase().trim().replace(/[^\p{L}\p{N}\s]/gu, ''); // optional punctuation removal
+    .toLowerCase().trim().replace(/[^\p{L}\p{N}\s]/gu, ''); // optional punctuation removal
 }
 
 function similarity(a, b) {
@@ -200,15 +202,15 @@ console.log("valid apps found\nsearching for files...");
 const filesForSearch = [];
 const filesHash = {};
 var initDirs = [
-    settings['search-files']['starting-dirs']['desktop'] ? path.join(process.env.USERPROFILE, 'Desktop') : null,
-    settings['search-files']['starting-dirs']['documents'] ? path.join(process.env.USERPROFILE, 'Documents') : null,
-    settings['search-files']['starting-dirs']['downloads'] ? path.join(process.env.USERPROFILE, 'Downloads') : null,
-    settings['search-files']['starting-dirs']['pictures'] ? path.join(process.env.USERPROFILE, 'Pictures') : null,
-    settings['search-files']['starting-dirs']['music'] ? path.join(process.env.USERPROFILE, 'Music') : null,
-    settings['search-files']['starting-dirs']['videos'] ? path.join(process.env.USERPROFILE, 'Videos') : null,
-  ];
+  settings['search-files']['starting-dirs']['desktop'] ? path.join(process.env.USERPROFILE, 'Desktop') : null,
+  settings['search-files']['starting-dirs']['documents'] ? path.join(process.env.USERPROFILE, 'Documents') : null,
+  settings['search-files']['starting-dirs']['downloads'] ? path.join(process.env.USERPROFILE, 'Downloads') : null,
+  settings['search-files']['starting-dirs']['pictures'] ? path.join(process.env.USERPROFILE, 'Pictures') : null,
+  settings['search-files']['starting-dirs']['music'] ? path.join(process.env.USERPROFILE, 'Music') : null,
+  settings['search-files']['starting-dirs']['videos'] ? path.join(process.env.USERPROFILE, 'Videos') : null,
+];
 function getFiles() {
-  
+
   for (const dir of initDirs) {
     if (dir) {
       getFilesFor(dir, 1, settings['search-files']['initial-max-depth']);
@@ -280,7 +282,7 @@ function findBestMatchFiles(query, candidates) {
       foundFolder = findBestMatch(folder, cands);
       cands = cands.filter(c => filesHash[c].includes(foundFolder.best));
     }
-    return {best: foundFolder.best, index: candidates.indexOf(foundFolder), score: foundFolder.score};
+    return { best: foundFolder.best, index: candidates.indexOf(foundFolder), score: foundFolder.score };
   } else {
     return findBestMatch(query, candidates);
   }
@@ -364,4 +366,37 @@ ipcMain.on('get-extentions', (event) => {
     }
   });
   event.reply('get-extentions', fileList);
+});
+
+function downloadExtensionZip(git_repo) {
+  const URL = `https://github.com/${git_repo}/archive/refs/heads/main.zip`;
+  console.log(URL);
+  const name = git_repo.split('/').pop();
+  const file = fs.createWriteStream(path.join(__dirname, `/extentions/${name}.zip`));
+  https.get(URL, function (response) {
+    if (response.statusCode === 302 || response.statusCode === 301) {
+      https.get(response.headers.location, (response) => {
+        response.pipe(file);
+        file.on('finish', function () {
+          file.close();
+          extractZip(path.join(__dirname, `/extentions/${name}.zip`), path.join(__dirname, '/extentions'));
+        });
+      });
+    } else {
+      response.pipe(file);
+      file.on('finish', function () {
+        file.close();
+        extractZip(path.join(__dirname, `/extentions/${name}.zip`), path.join(__dirname, '/extentions'));
+      });
+    }
+  });
+}
+function extractZip(file, dest) {
+  console.log(file, dest);
+  const zip = new AdmZip(file);
+  zip.extractAllTo(dest, true);
+}
+
+ipcMain.on('download-extention', async (event, git_repo) => {
+  downloadExtensionZip(git_repo);
 });
