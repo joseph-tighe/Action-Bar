@@ -379,11 +379,8 @@ function downloadExtensionZip(git_repo) {
   console.log(URL);
   const name = git_repo.split('/').pop();
   const file = fs.createWriteStream(path.join(__dirname, `../../src/extentions/${name}.zip`));
-  console.log(file);
   https.get(URL, function (response) {
-    console.log(response.statusCode);
     if (response.statusCode === 302 || response.statusCode === 301) {
-      console.log("redirect");
       https.get(response.headers.location, (response) => {
         response.pipe(file);
         file.on('finish', function () {
@@ -401,7 +398,6 @@ function downloadExtensionZip(git_repo) {
   });
 }
 function extractZip(file, dest) {
-  console.log(file, dest);
   const zip = new AdmZip(file);
   zip.extractAllTo(dest, true);
 }
