@@ -5,15 +5,30 @@
   "main": "src/app.js",
   "scripts": {
     "dist": "electron-builder",
+    "test-build": "electron-builder --publish never",
     "start": "electron .",
     "test": "echo \"TODO: Add Tests\" && exit 1"
   },
   "build": {
     "files": [
-      "src/*",
-      "config/*",
-      "static/*",
+      "src/**/*",
+      "config/**/*",
+      "static/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "static",
+        "to": "static"
+      },
+      {
+        "from": "src",
+        "to": "src"
+      },
+      {
+        "from":"config",
+        "to":"config"
+      }
     ],
     "appId": "com.josephtighe.actionbar",
     "publish": [

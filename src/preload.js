@@ -491,13 +491,13 @@ ipcRenderer.on('get-extentions', (event, files) => {
   (async () => {
   manifests = {};
   for (const file of files) {
-    let data = await fetch(`extentions/${file}/manifest.json`).then(response => response.json());
+    let data = await fetch(`../src/extentions/${file}/manifest.json`).then(response => response.json());
     manifests[file] = data;
   }
   for (const file of files) {
     let data = manifests[file];
     if (data.settings.active) {
-      let code = await fetch(`extentions/${file}/${data.file}`).then(response => response.text());
+      let code = await fetch(`../src/extentions/${file}/${data.file}`).then(response => response.text());
       eval(code); //make functions
       let feature = eval(`(() => {
       return {
@@ -515,7 +515,7 @@ ipcRenderer.on('get-extentions', (event, files) => {
 })();
 });
 (async () => {
-  pipelines = await fetch("pipelines/piplines.json").then(response => response.json());
+  pipelines = await fetch("../src/pipelines/piplines.json").then(response => response.json());
 })();
 function getPipeline(name) {
   for (const pipeline of pipelines) {

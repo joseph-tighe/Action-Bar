@@ -7,10 +7,10 @@ const https = require('https');
 const AdmZip = require('adm-zip');
 
 let tray = null;
-
+console.log(__dirname);
 app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
-const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../config/settings.json')));
+const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -27,12 +27,13 @@ function createWindow() {
 
   })
 
-  win.loadFile('src/index.html');
+  win.loadFile(path.join(__dirname, '../../src/index.html'));
   return win;
 }
 mainWindow = null;
 app.whenReady().then(() => {
-  tray = new Tray('static/images/icon.png');
+  console.log(__dirname); 
+  tray = new Tray(path.join(__dirname, '../../static/images/icon.png'));
   tray.setToolTip('Launch Hub');
   tray.on('click', () => {
     if (mainWindow.isVisible()) {
@@ -230,7 +231,12 @@ async function getFilesFor(dir, depth, maxDepth) {
   if (depth > maxDepth) return;
   depth++;
   if (fs.existsSync(dir)) {
-    let files = fs.readdirSync(dir);
+    let files = [];
+    try {
+      files = fs.readdirSync(dir);
+    } catch {
+      return;
+    }
     for (const file of files) {
       const filePath = path.join(dir, file);
       if (fs.statSync(filePath).isDirectory() && !file.includes(".") && checkPermissionsSync(filePath) && !settings['search-files']['invalid-directories'].includes(file)) {
@@ -343,11 +349,11 @@ ipcMain.on('open-settings', (event) => {
     //backgroundMaterial: 'acrylic', // on Windows 11
     resizable: true, // Optional: prevents resizing
     webPreferences: {
-      preload: path.join(__dirname, 'settings/preload.js')
+      preload: path.join(__dirname, '../../src/settings/preload.js')
     },
     frame: true
   })
-  settingsWindow.loadFile('src/settings/index.html');
+  settingsWindow.loadFile(path.join(__dirname, '../../src/settings/index.html'));
   settingsWindow.on('blur', () => {
     settingsWindow.hide();
   });
@@ -356,12 +362,12 @@ ipcMain.on('open-settings', (event) => {
   });
 });
 ipcMain.on('update-settings', (event, settings) => {
-  fs.writeFileSync(path.join(__dirname, '../config/settings.json'), JSON.stringify(settings, null, 4));
+  fs.writeFileSync(path.join(__dirname, '../../config/settings.json'), JSON.stringify(settings, null, 4));
 });
 ipcMain.on('get-extentions', (event) => {
   fileList = [];
-  fs.readdirSync(path.join(__dirname, '/extentions')).forEach(file => {
-    if (fs.statSync(path.join(__dirname, '/extentions', file)).isDirectory()) {
+  fs.readdirSync(path.join(__dirname, '../../src/extentions')).forEach(file => {
+    if (fs.statSync(path.join(__dirname, '../../src/extentions', file)).isDirectory()) {
       fileList.push(file);
     }
   });
@@ -379,14 +385,14 @@ function downloadExtensionZip(git_repo) {
         response.pipe(file);
         file.on('finish', function () {
           file.close();
-          extractZip(path.join(__dirname, `/extentions/${name}.zip`), path.join(__dirname, '/extentions'));
+          extractZip(path.join(__dirname, `../../src/extentions/${name}.zip`), path.join(__dirname, '../../src/extentions'));
         });
       });
     } else {
       response.pipe(file);
       file.on('finish', function () {
         file.close();
-        extractZip(path.join(__dirname, `/extentions/${name}.zip`), path.join(__dirname, '/extentions'));
+        extractZip(path.join(__dirname, `../../src/extentions/${name}.zip`), path.join(__dirname, '../../src/extentions'));
       });
     }
   });
