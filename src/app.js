@@ -404,4 +404,4 @@ function extractZip(file, dest) {
 
 ipcMain.on('download-extention', async (event, git_repo) => {
   downloadExtensionZip(git_repo);
-});
+}); 
