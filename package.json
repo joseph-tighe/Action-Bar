@@ -26,8 +26,8 @@
         "to": "src"
       },
       {
-        "from":"config",
-        "to":"config"
+        "from": "config",
+        "to": "config"
       }
     ],
     "appId": "com.josephtighe.actionbar",
