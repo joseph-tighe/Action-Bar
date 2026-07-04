@@ -61,6 +61,7 @@ function openExtensionStore() {
     Input.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
             ipc.send('download-extention', document.getElementById('extention-store-input').value);
+            Input.value = "Downloaded!";
         }
     });
     contentBody.appendChild(Input);
@@ -72,6 +73,8 @@ function openExtensionStore() {
         btn.textContent = extention.split("/").pop() + " by " + extention.split("/")[0];
         btn.addEventListener('click', () => {
             ipc.send('download-extention', extention);
+            btn.textContent = "Downloaded!";
+            btn.disabled = true;
         });
         contentBody.appendChild(btn);
     }
