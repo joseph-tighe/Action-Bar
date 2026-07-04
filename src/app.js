@@ -400,3 +400,9 @@ function extractZip(file, dest) {
 ipcMain.on('download-extention', async (event, git_repo) => {
   downloadExtensionZip(git_repo);
 }); 
+app.whenReady().then(() => {
+  console.log("app ready");
+  setTimeout(() => {
+    toggleWindowVisibility();
+  }, 500);
+});
