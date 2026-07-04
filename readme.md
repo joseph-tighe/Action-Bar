@@ -7,6 +7,8 @@ This is a simple windows desktop app that lets you quickly run actions and searc
 ## Try it out
 Download the latest release from the [releases](https://github.com/joseph-tighe/action-bar/releases) page.
 
+To open the application run the setup.exe file. Windows may flag it as unsafe, if it does click advanced and then run. Then once the application is downloaded run the .exe file. In order to open the UI press `Alt + Z`.
+
 ## Features
 - Quickly open apps and files
 - Use any extention
