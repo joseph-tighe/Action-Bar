@@ -66,7 +66,7 @@ function openExtensionStore() {
     contentBody.appendChild(Input);
     const breaker = document.createElement('br');
     contentBody.appendChild(breaker);
-    recommendedExtentions = ["joseph-tighe/colorPicker", "joseph-tighe/calculator", "joseph-tighe/timer", "joseph-tighe/ddg", "joseph-tighe/open", "joseph-tighe/wikipedia", "joseph-tighe/youtubeMusic", "joseph-tighe/github", "joseph-tighe/conversion", "joseph-tighe/calculator"];
+    recommendedExtentions = ["joseph-tighe/colorPicker"];
     for (const extention of recommendedExtentions) {
         let btn = document.createElement('button');
         btn.textContent = extention.split("/").pop() + " by " + extention.split("/")[0];
