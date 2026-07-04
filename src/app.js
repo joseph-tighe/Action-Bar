@@ -26,7 +26,7 @@ function createWindow() {
     frame: false
 
   })
-
+  win.setTitle('Launch Hub');
   win.loadFile(path.join(__dirname, '../../src/index.html'));
   return win;
 }
