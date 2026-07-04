@@ -36,12 +36,7 @@ app.whenReady().then(() => {
   tray = new Tray(path.join(__dirname, '../../static/images/icon.png'));
   tray.setToolTip('Launch Hub');
   tray.on('click', () => {
-    if (mainWindow.isVisible()) {
-      mainWindow.hide();
-    } else {
-      mainWindow.setPosition(screen.getPrimaryDisplay().workArea.x / 2, screen.getPrimaryDisplay().workArea.y / 2, true);
-      mainWindow.show();
-    }
+    toggleWindowVisibility();
   })
   mainWindow = createWindow();
   app.on('activate', () => {
