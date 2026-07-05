@@ -9,6 +9,9 @@ Download the latest release from the [releases](https://github.com/joseph-tighe/
 
 To open the application run the setup.exe file. Windows may flag it as unsafe, if it does click advanced and then run. Then once the application is downloaded run the .exe file. In order to open the UI press `Alt + Z`.
 
+In order to edit settings type `@settings` in the search bar and press enter.
+
+To call a specific extension type `@ + The extention name` and press enter.
 ## Features
 - Quickly open apps and files
 - Use any extention
