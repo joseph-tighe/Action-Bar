@@ -127,7 +127,7 @@ Create a new repository on github and make sure it is public.
 The root of your project should be the name of your repository.
 
 ## Downloading your extension
-- A user will need to do from there to download your extension is to type `@settings` in the search bar and press enter.
+- A user will need to type `@settings` in the search bar and press enter.
 - Then they press **Download extension** from the sidebar.
 - Then just type `Github-Username/Repository-Name` and press enter.
 - Then upon restarting the app the extension will be downloaded.
