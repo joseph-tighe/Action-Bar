@@ -27,7 +27,6 @@ If you want to make your own extension for the app see [extensions.md](https://g
 
 ### Pipelines
 Pipelines are a bit confusing but the user has access to a JSON file and they can write pipelines in it. They allow for the user to pipe extensions together without code. For example if I have a hash file extension I can take the output of the **open** extension into the hash extension and output that to the user. Pipelines have more functionality than that they can combine pieces of text, run bash, access the user's clipboard and more. If you are interested in them read [pipelines.md](https://github.com/joseph-tighe/Action-Bar/blob/master/src/pipelines/pipelines.md)
-> Docs not finished yet
 
 ## Build
 If you want to build it you can it is not necessary to use it there is a release for that.
