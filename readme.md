@@ -23,7 +23,7 @@ Extensions are pieces of JS anyone can write and download to add functionality t
 
 The user can call a specific extension by typing `@extension_name parameters`
 
-If you want to make your own extension for the app see [extensions.md](https://github.com/joseph-tighe/Action-Bar/tree/master/src/extensions/extentionDocs.md)
+If you want to make your own extension for the app see [extensions.md](https://github.com/joseph-tighe/Action-Bar/blob/master/src/extentions/extentionDocs.md)
 
 ### Pipelines
 Pipelines are a bit confusing but the user has access to a JSON file and they can write pipelines in it. They allow for the user to pipe extensions together without code. For example if I have a hash file extension I can take the output of the **open** extension into the hash extension and output that to the user. Pipelines have more functionality than that they can combine pieces of text, run bash, access the user's clipboard and more. If you are interested in them read [pipelines.md](https://github.com/joseph-tighe/Action-Bar/blob/master/src/pipelines/pipelines.md)
