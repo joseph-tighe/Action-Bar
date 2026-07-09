@@ -212,7 +212,7 @@ function getSearch() { return document.getElementById('search'); }
 const isAsync = fn => fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
 function callPipeWith(feature) {
   for (const pipe of pipelines) {
-    if (pipe.trigger.split(" ")[0] == "with" && pipe.trigger.split(" ")[1] == feature) {
+    if (pipe.trigger.split(" ")[0] == "with" && pipe.trigger.split(" ")[1] == feature && pipe.enabled) {
       const x = new Pipeline(pipe);
       x.run().catch((error) => console.error("Pipeline failed:", error));
       return;
@@ -361,7 +361,7 @@ getSearch().addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       name = search.value.split(settings['pipelines']['noting-char'])[1];
       for (const pipe in pipelines) {
-        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call") {
+        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call" && pipelines[pipe].enabled) {
           x = new Pipeline(pipelines[pipe]);
           x.run();
           return;
