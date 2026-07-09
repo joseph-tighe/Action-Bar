@@ -168,26 +168,46 @@ function findBestMatch(query, candidates) {
 function getApps() {
   // look through start menu
   const desktop = path.join(process.env.USERPROFILE, 'Desktop');
+  const startMenu = path.join(
+    process.env.APPDATA,
+    "Microsoft",
+    "Windows",
+    "Start Menu",
+    "Programs"
+);
+
+const programsRegistry = path.join(
+    process.env.LOCALAPPDATA,
+    "Programs"
+);
   const appList = [];
-  if (fs.existsSync(desktop)) {
-    const files = fs.readdirSync(desktop);
-    for (const file of files) {
-      const filePath = path.join(desktop, file);
-      if (fs.statSync(filePath).isDirectory()) {
-        const appName = path.basename(filePath);
-        const appPath = path.join(filePath, 'Uninstall.exe');
-        if (fs.existsSync(appPath)) {
-          appList.push({ name: appName, path: appPath });
-        }
-      } else if (file.endsWith('.lnk')) {
-        const appName = path.basename(filePath, '.lnk');
-        const appPath = path.join(filePath);
-        if (fs.existsSync(appPath)) {
-          appList.push({ name: appName, path: appPath });
+  for (const dir of [desktop, startMenu, programsRegistry]) {
+    if (fs.existsSync(dir)) {
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        const filePath = path.join(dir, file);
+        if (fs.statSync(filePath).isDirectory()) {
+          var appName = path.basename(filePath);
+          for (const file of fs.readdirSync(filePath)) {
+            if (appName.endsWith(".lnk") || file.endsWith(".exe")) {
+              var appPath = path.join(filePath, file);
+              appName = file.replace(".exe", "").replace(".lnk", "");
+              if (fs.existsSync(appPath) && !appName.toLowerCase().includes("uninstall")) {
+                appList.push({ name: appName, path: appPath });
+              }
+            }
+          }
+        } else if (file.endsWith('.lnk')) {
+          const appName = path.basename(filePath, '.lnk');
+          const appPath = path.join(filePath);
+          if (fs.existsSync(appPath)) {
+            appList.push({ name: appName, path: appPath });
+          }
         }
       }
     }
   }
+  console.log(appList);
   return appList;
 }
 const appList = getApps();

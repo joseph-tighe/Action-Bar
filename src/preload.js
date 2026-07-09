@@ -123,7 +123,11 @@ class Answer {
     return this.wrapper;
   }
   destroy() {
-    this.wrapper.remove();
+    try {
+      this.wrapper.remove();
+    } catch (e) {
+      console.log(e);
+    }
   }
   removeIcon() {
     this.resultEl.removeChild(this.img);
