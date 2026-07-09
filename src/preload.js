@@ -459,6 +459,7 @@ function formatTimeInt(x) {
   return floor(x).toString().padStart(2, "0");
 }
 function autocompleteEnter(answer) {
+  clearAnswers();
   if (answer.getText() != "") {
     getSearch().value = answer.getText();
     getSearch().focus();
