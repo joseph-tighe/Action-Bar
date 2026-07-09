@@ -41,10 +41,10 @@ class Search {
   }
 }
 class Answer {
-  constructor(imageUrl, text) {
+  constructor(imageUrl, text, overRideLimit=false) {
     this.text = text;
     let selector = false;
-    if (document.getElementsByClassName('result').length > settings['answers']['max-amount']) {
+    if (document.getElementsByClassName('result').length > settings['answers']['max-amount'] && !overRideLimit) {
       return;
     } else if (document.getElementsByClassName('result').length == 0) {
       selector = true;
@@ -176,7 +176,6 @@ class PipelineAnswer {
     return this.wrapper;
   }
   destroy() {
-    this.wrapper.remove();
   }
   removeIcon() {
     this.resultEl.removeChild(this.img);
@@ -307,10 +306,6 @@ function callActionDefult(item, hasGone, e) {
 }
 function callAction(e) {
   var item = userSelection();
-  for (let i = 0; i < answerList.length; i++) {
-    answerList[i].destroy();
-  }
-  answerList = [];
   var hasGone = false;
   hasGone = callActionUserSelection(item, hasGone, e);
   callActionCheck(item, hasGone, e);
@@ -318,7 +313,11 @@ function callAction(e) {
 }
 
 ipcRenderer.on('focus-search', () => {
-  getSearch().focus();
+  try {
+    getSearch().focus();
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -348,44 +347,8 @@ window.addEventListener('DOMContentLoaded', () => {
   }, true);
 
 getSearch().addEventListener('keyup', (e) => {
+  //selector
   const wrappers = document.getElementsByClassName("resultWrapper");
-
-  if (e.key === "Escape") {
-    ipcRenderer.send('close-window');
-    return;
-  }
-
-  
-  search = getSearch();
-  if (search.value[0] == (settings['pipelines']['noting-char'])) {
-    if (e.key === 'Enter') {
-      name = search.value.split(settings['pipelines']['noting-char'])[1];
-      for (const pipe in pipelines) {
-        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call" && pipelines[pipe].enabled) {
-          x = new Pipeline(pipelines[pipe]);
-          x.run();
-          return;
-        }
-      }
-    }
-  }
-
-  if (e.key === "Enter" || e.key === "Tab") {
-    if (wrappers.length === 0) return;
-
-    for (let i = 0; i < wrappers.length; i++) {
-      if (wrappers[i].classList.contains("selector")) {
-        if (activeFeatures.length === 0) {
-          autocompleteEnter(answerList[i]);
-        } else {
-          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i], new Search());
-          callPipeWith(activeFeatures[i]);
-        }
-      }
-    }
-    return;
-  }
-
   if (e.key === "ArrowUp") {
     if (wrappers.length === 0) return;
 
@@ -411,24 +374,55 @@ getSearch().addEventListener('keyup', (e) => {
     }
     return;
   }
+  //autocomplete
+  if (e.key === "Enter" || e.key === "Tab") {
+    if (wrappers.length === 0) return;
+
+    for (let i = 0; i < wrappers.length; i++) {
+      if (wrappers[i].classList.contains("selector")) {
+        if (activeFeatures.length === 0) {
+          autocompleteEnter(answerList[i]);
+        } else {
+          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i], new Search());
+          callPipeWith(activeFeatures[i]);
+        }
+      }
+    }
+    return;
+  }
+  //clear all
   activeFeatures = []
-  if (e.key) {
+  clearAnswers();
+  search = getSearch();
+  //load extention answers
+  if (e.key && !(e.key == "Enter" || e.key == "Tab" || e.key == "Escape" || e.key == "ArrowUp" || e.key == "ArrowDown" || search.value == "?")) {
     ResponseId++;
     hasDone = false;
     callAction(e);
   }
-  
-  if (settings['style']['tips']) {
-    var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
-    var placeholderIndex = 1;
-
-    setInterval(() => {
-      if (search.value == "") {
-        search.placeholder = placeholders[placeholderIndex];
-        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+  //load pipelines
+  if (search.value[0] == (settings['pipelines']['noting-char'])) {
+    if (e.key === 'Enter') {
+      name = search.value.split(settings['pipelines']['noting-char'])[1];
+      for (const pipe in pipelines) {
+        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call" && pipelines[pipe].enabled) {
+          x = new Pipeline(pipelines[pipe]);
+          x.run();
+          return;
+        }
       }
-    }, 6000);
+    }
   }
+  //help
+  if (e.key === "Escape") {
+    ipcRenderer.send('close-window');
+    return;
+  }
+  
+  if (search.value == "?") {
+    listExtentions()
+  }
+  return;
 });
 
 
@@ -444,6 +438,17 @@ getSearch().addEventListener('keyup', (e) => {
     document.documentElement.style.setProperty('--searchwidth', settings['style']['searchwidth']);
     document.documentElement.style.setProperty('--bottomradius', parseFloat(settings['style']['answerbarwidth'].replace("%", "")) >= 99 ? '0px' : settings['style']['borderradius']);
     document.documentElement.style.setProperty('--expandability', (100 - parseFloat(settings['style']['expandability'].replace("%", ""))) / 100);
+    if (settings['style']['tips']) {
+    var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
+    var placeholderIndex = 1;
+
+    setInterval(() => {
+      if (search.value == "") {
+        search.placeholder = placeholders[placeholderIndex];
+        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+      }
+    }, 6000);
+  }
   }, 100);
 });
 
@@ -624,5 +629,21 @@ class Pipeline {
     if (!emitted) {
       this.Output(this.lastOutput);
     }
+  }
+}
+function clearAnswers() {
+  for (let i = 0; i < answerList.length; i++) {
+    answerList[i].destroy();
+  }
+  answerList = [];
+  const results = document.getElementById('results');
+  for (const child of results.children) {
+    results.removeChild(child);
+  }
+}
+function listExtentions() {
+  for (var i = 0; i < features.length || i < 7; i++) {
+    answer = new Answer("../static/images/icon.svg", settings["tool-decloration"]["tool-decloration-char"] + features[i], true);
+    answerList.push(answer);
   }
 }
