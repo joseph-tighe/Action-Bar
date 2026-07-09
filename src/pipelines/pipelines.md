@@ -10,6 +10,7 @@ A pipeline is a JSON file that looks like this:
   "id": "My_Pipeline",
   "name": "My_Pipeline",
   "input": "search",
+  "enabled":true,
   "output": "answer",
   "trigger": "call",
   "steps": [
@@ -55,6 +56,8 @@ To add a new pipeline you need to add a new object to the array.
 > id: A unique id for the pipeline no spaces allowed.
 >
 > name: The name of the pipeline no spaces allowed.
+>
+> enabled: A boolean that says if the pipeline will be ran
 >
 > trigger: The trigger the pipeline will use.
 > > - call: when the user explicitly calls the pipeline using `#pipeline_name`

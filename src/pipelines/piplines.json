@@ -5,6 +5,7 @@
         "trigger": "with open",
         "input": "search",
         "output": "answer",
+        "enabled":false,
         "steps": [
             {
                 "id": "file",
@@ -42,6 +43,7 @@
         "trigger": "call",
         "input": "clipboard",
         "output": "clipboard",
+        "enabled":true,
         "steps": [
             {
                 "id": "calculator",
