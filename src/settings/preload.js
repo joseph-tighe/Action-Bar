@@ -2,7 +2,8 @@ const ipc = require('electron').ipcRenderer;
 window.addEventListener('DOMContentLoaded', () => {
 let settings = {};
 let currentGroup = null;
-
+let extentionLoaded = false;
+let extentionDirMap = {};
 const sidebarList = document.querySelector('.sidebar-list');
 const contentBody = document.querySelector('.content-body');
 const contentHeader = document.querySelector('.content-header');
@@ -21,6 +22,9 @@ fetch('../../config/settings.json')
 
 saveBtn.addEventListener('click', () => {
   ipc.send('update-settings', settings);
+  if (settings.extensions && typeof settings.extensions === 'object') {
+    ipc.send('update-extention-settings', settings.extensions, extentionDirMap);
+  }
 });
 
 function formatLabel(text) {
@@ -80,7 +84,7 @@ function openExtensionStore() {
     }
 
 }
-function openSetting(key) {
+async function openSetting(key) {
   currentGroup = key;
   contentHeader.textContent = formatLabel(key);
   contentBody.innerHTML = '';
@@ -95,6 +99,26 @@ function openSetting(key) {
   Array.from(sidebarList.children).forEach(btn => {
     btn.classList.toggle('active', btn.textContent.toLowerCase() === formatLabel(key).toLowerCase());
   });
+  if (key === 'extensions') {
+    ipc.send('get-extentions');
+    ipc.on('get-extentions', async (event, files) => {
+      if (extentionLoaded) {
+        return;
+      }
+      extentionLoaded = true;
+      extentionManifests = [];
+      for (const extention of files) {
+        let data = await fetch(`../../src/extentions/${extention}/manifest.json`).then(response => response.json());
+        extentionManifests.push(data);
+        extentionDirMap[data.name] = extention;
+      }
+      extentionSettings = {};
+      for (const manifest of extentionManifests) {
+        extentionSettings[manifest.name] = manifest.settings;
+      }
+      renderGroup(extentionSettings, contentBody, ['extensions']);
+    });
+  }
 }
 
 function renderGroup(value, parent, path) {

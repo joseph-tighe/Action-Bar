@@ -379,6 +379,16 @@ ipcMain.on('open-settings', (event) => {
 ipcMain.on('update-settings', (event, settings) => {
   fs.writeFileSync(path.join(__dirname, '../../config/settings.json'), JSON.stringify(settings, null, 4));
 });
+ipcMain.on('update-extention-settings', (event, extensionSettings, dirMap) => {
+  for (const [name, settings] of Object.entries(extensionSettings)) {
+    const dir = dirMap[name];
+    if (!dir) continue;
+    const manifestPath = path.join(__dirname, `../../src/extentions/${dir}/manifest.json`);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.settings = settings;
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 4));
+  }
+});
 ipcMain.on('get-extentions', (event) => {
   fileList = [];
   fs.readdirSync(path.join(__dirname, '../../src/extentions')).forEach(file => {
