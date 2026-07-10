@@ -21,7 +21,8 @@ function createWindow() {
     //backgroundMaterial: 'acrylic', // on Windows 11
     resizable: true, // Optional: prevents resizing
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      sandbox: false
     },
     frame: false
 
@@ -364,7 +365,8 @@ ipcMain.on('open-settings', (event) => {
     //backgroundMaterial: 'acrylic', // on Windows 11
     resizable: true, // Optional: prevents resizing
     webPreferences: {
-      preload: path.join(__dirname, '../../src/settings/preload.js')
+      preload: path.join(__dirname, '../../src/settings/preload.js'),
+      sandbox: false
     },
     frame: true
   })
