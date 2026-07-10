@@ -7,18 +7,8 @@
     --searchwidth: 90%;
     --bottomradius: 10px;
     --expandability: 1;
-}
-#search {
-    padding: 10px;
-    width: calc(var(--searchwidth));
-    height: 100%;
-    font-size: 20px;
-    box-shadow: 0 0 var(--shadowstrength) var(--background);
-    border: none;
-    outline: none;
-    background: var(--background);    
-    color: var(--foreground);
-    border-radius: var(--borderradius) var(--borderradius) var(--bottomradius) var(--bottomradius);
+    --font-ui: 'Inter', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Consolas', 'Cascadia Code', monospace;
 }
 
 body {
@@ -28,19 +18,39 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    font-family: var(--font-ui);
 }
+
+#search {
+    padding: 10px;
+    width: calc(var(--searchwidth));
+    height: 100%;
+    font-family: var(--font-ui);
+    font-size: 20px;
+    font-weight: 400;
+    box-shadow: 0 0 var(--shadowstrength) var(--background);
+    border: none;
+    outline: none;
+    background: var(--background);
+    color: var(--foreground);
+    border-radius: var(--borderradius) var(--borderradius) var(--bottomradius) var(--bottomradius);
+}
+
 #results {
     max-width: calc((var(--answerbarwidth)/100%) * var(--searchwidth));
     min-width: calc(((var(--answerbarwidth)/100%)*var(--expandability)) * var(--searchwidth));
     background: var(--background);
     color: var(--foreground);
+    font-family: var(--font-ui);
     border-bottom-left-radius: var(--borderradius);
     border-bottom-right-radius: var(--borderradius);
 }
+
 .resultWrapper {
     padding-left: 10px;
     padding-right: 10px;
-    font-size: 20px;
+    font-size: 17px;
+    font-weight: 400;
     border: none;
     outline: none;
     display: flex;
@@ -48,6 +58,7 @@ body {
     justify-content: left;
     align-items: center;
 }
+
 .result {
     width: 100%;
     padding: 5px;
@@ -57,10 +68,12 @@ body {
     justify-content: left;
     overflow-wrap: break-word;
 }
+
 .result img {
     justify-self: right;
     margin-right: 10px;
 }
+
 .resultWrapper .found-image-wrapper {
     max-width: 100%;
     display: flex;
@@ -70,21 +83,25 @@ body {
     margin-bottom: 10px;
     width: 20%;
 }
+
 .resultWrapper .found-image-wrapper img {
     width: 100%;
 }
+
 #html5colorpicker {
     background-color: transparent;
     border-color: transparent;
 }
+
 .loader {
-        stroke-dasharray: 24, 16;
+    stroke-dasharray: 24, 16;
     width: 20px;
     height: 20px;
     stroke-width: 2;
     stroke-linecap: round;
     animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
     0% {
         stroke-dasharray: 10, 28;
@@ -98,8 +115,16 @@ body {
         transform: rotate(360deg);
     }
 }
+
 .selector {
     background-color: #1e1f20;
     border-radius: var(--borderradius);
+    font-family: var(--font-ui);
+}
 
+/* Use this on any element showing raw output, file paths, hashes, or JSON
+   from extensions/pipelines, e.g. <code class="mono"> or a dedicated result type */
+.mono {
+    font-family: var(--font-mono);
+    font-size: 15px;
 }

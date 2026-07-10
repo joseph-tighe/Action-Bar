@@ -15,7 +15,6 @@ function canCalculate() {
   const numericChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '-', '*', '/', '%', '.', ',', '^', '(', ')'];
   for (item of text) {
     isNumericChar = numericChars.includes(item) || item == " " || item == "=" ? true : false;
-    console.log(isNumericChar, text)
     if (!isNumericChar) {
       break;
     }
@@ -66,7 +65,6 @@ function RunCalculator(key, output, search) {
     }
     for (var [key, value] of Object.entries(constants)) {
       if (equation.includes(key)) {
-        console.log(equation);
         index = equation.indexOf(key);
         const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         if (numbers.includes(equation[index - 1])) {
@@ -81,7 +79,6 @@ function RunCalculator(key, output, search) {
         equation = equation.replace(key, value);
       }
     }
-    console.log(equation);
     setNext = false;
     if (equation.includes("=") || (key === 'Enter' || key === 'Tab')) {
       equation = equation.replace("=", "");
