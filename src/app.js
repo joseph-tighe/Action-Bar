@@ -165,53 +165,31 @@ function findBestMatch(query, candidates) {
   }
   return { best: candidates[bestIdx], index: bestIdx, score: bestScore };
 }
+var appList = [];
+async function getApps() {
+  exec(
+    'powershell -NoProfile -Command "Get-StartApps | ConvertTo-Json"',
+    (err, stdout, stderr) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
 
-function getApps() {
-  // look through start menu
-  const desktop = path.join(process.env.USERPROFILE, 'Desktop');
-  const startMenu = path.join(
-    process.env.APPDATA,
-    "Microsoft",
-    "Windows",
-    "Start Menu",
-    "Programs"
-);
-
-const programsRegistry = path.join(
-    process.env.LOCALAPPDATA,
-    "Programs"
-);
-  const appList = [];
-  for (const dir of [desktop, startMenu, programsRegistry]) {
-    if (fs.existsSync(dir)) {
-      const files = fs.readdirSync(dir);
-      for (const file of files) {
-        const filePath = path.join(dir, file);
-        if (fs.statSync(filePath).isDirectory()) {
-          var appName = path.basename(filePath);
-          for (const file of fs.readdirSync(filePath)) {
-            if (appName.endsWith(".lnk") || file.endsWith(".exe")) {
-              var appPath = path.join(filePath, file);
-              appName = file.replace(".exe", "").replace(".lnk", "");
-              if (fs.existsSync(appPath) && !appName.toLowerCase().includes("uninstall")) {
-                appList.push({ name: appName, path: appPath });
-              }
-            }
-          }
-        } else if (file.endsWith('.lnk')) {
-          const appName = path.basename(filePath, '.lnk');
-          const appPath = path.join(filePath);
-          if (fs.existsSync(appPath)) {
-            appList.push({ name: appName, path: appPath });
-          }
+      var apps = JSON.parse(stdout);
+      apps = apps.map(a => ({
+        name: a.Name,
+        appId: a.AppID
+      }));
+      for (const app of apps) {
+        if (app.name != undefined) {
+          appList.push(app);
         }
       }
+      console.log(apps);
     }
-  }
-  console.log(appList);
-  return appList;
+  );
 }
-const appList = getApps();
+getApps();
 
 console.log("valid apps found\nsearching for files...");
 
@@ -318,11 +296,16 @@ function resolvePathForQuery(query, shouldOpen) {
     const appNames = appList.map(app => app.name);
     let closest = findBestMatch(query, appNames);
     if (closest && closest.score > 0.5) {
-      const appPath = appList[closest.index].path;
+      const closestApp = appList[closest.index];
       if (shouldOpen) {
-        exec(`start "" "${appPath}"`);
+        console.log(closestApp.appId, closestApp.name);
+        function launchApp(appId) {
+            exec(`explorer.exe shell:AppsFolder\\${appId}`);
+        }
+
+        launchApp(closestApp.appId);
       }
-      return { ok: true, file: appPath, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
+      return { ok: true, file: closestApp.path, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
     }
 
     closest = findBestMatchFiles(query, filesForSearch);

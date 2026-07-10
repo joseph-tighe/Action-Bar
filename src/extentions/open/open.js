@@ -1,7 +1,7 @@
 var lastSearch = "";
 ipcRenderer.on('open-file', (event, file) => {
     if (openningOutput == null) return;
-    openningOutput.updateText(`${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
+    openningOutput.updateText(`${action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
     if (imageExtensions.includes(file.file.split(".").pop())) {
         const imgWrapper = document.createElement('div');
