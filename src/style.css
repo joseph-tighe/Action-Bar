@@ -1,3 +1,7 @@
+@font-face {
+    font-family: "Inter";
+    src: url("Inter-Variable.ttf");
+}
 :root {
     --background: rgba(0, 0, 0, 0.5);
     --foreground: #ffffff;
