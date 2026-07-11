@@ -8,7 +8,7 @@
     --bottomradius: 10px;
     --expandability: 1;
     --font-ui: 'Inter', 'Segoe UI Variable', system-ui, -apple-system, sans-serif;
-    --font-mono: 'Consolas', 'Cascadia Code', monospace;
+    --font-mono: 'Cascadia Code', 'Consolas', monospace;
 }
 
 body {
@@ -19,15 +19,17 @@ body {
     justify-content: center;
     align-items: center;
     font-family: var(--font-ui);
+    line-height: 1.4;
 }
 
 #search {
-    padding: 10px;
+    padding: 12px 14px;
     width: calc(var(--searchwidth));
     height: 100%;
     font-family: var(--font-ui);
-    font-size: 20px;
-    font-weight: 400;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
     box-shadow: 0 0 var(--shadowstrength) var(--background);
     border: none;
     outline: none;
@@ -49,7 +51,7 @@ body {
 .resultWrapper {
     padding-left: 10px;
     padding-right: 10px;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 400;
     border: none;
     outline: none;
@@ -67,6 +69,8 @@ body {
     align-items: center;
     justify-content: left;
     overflow-wrap: break-word;
+    line-height: 1.35;
+    color: rgba(255,255,255,.92);
 }
 
 .result img {
