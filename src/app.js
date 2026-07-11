@@ -305,7 +305,7 @@ function resolvePathForQuery(query, shouldOpen) {
 
         launchApp(closestApp.appId);
       }
-      return { ok: true, file: closestApp.path, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
+      return { ok: true, file: closestApp.name, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
     }
 
     closest = findBestMatchFiles(query, filesForSearch);
