@@ -19,6 +19,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
+    icon: path.join(__dirname, "../../static/images/icon.ico"), // Windows
     transparent: true,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
@@ -453,6 +454,7 @@ ipcMain.on('open-settings', (event) => {
   settingsWindow = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
+    icon: path.join(__dirname, "../../static/images/icon.ico"),
     transparent: false,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
