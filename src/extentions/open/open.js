@@ -1,7 +1,16 @@
 var lastSearch = "";
 ipcRenderer.on('open-file', (event, file) => {
     if (openningOutput == null) return;
-    openningOutput.updateText(`${file.action == "Open" ? "Opening" : "Found"} ${file.type == "file" ? "file" : "app"} ${file.file}`);
+    openningOutput.updateText(`${file.action == "Open" ? "Opening " : ""}${file.file}`);
+    let imageFile = file.file;
+    if (file.type == "app") {
+        imageFile = file.icon;
+        if (imageFile) {
+            openningOutput.updateImage(imageFile);
+            openningOutput.img.style.width = '32px';
+            openningOutput.img.style.height = '32px';
+        }
+    }
     imageExtensions = ["png", "jpg", "jpeg", "svg", "webp"]
     if (imageExtensions.includes(file.file.split(".").pop())) {
         const imgWrapper = document.createElement('div');
@@ -14,6 +23,7 @@ ipcRenderer.on('open-file', (event, file) => {
         img.alt = '';
         document.getElementsByClassName('found-image-wrapper')[0].appendChild(img);
         openningOutput.removeIcon();
+        openningOutput.updateImage("");
     }
 });
 var openningOutput = null;
@@ -44,7 +54,7 @@ async function runOpen(key, output, search) {
     }
 
     if (result && result.ok && result.file) {
-        output.updateText(result.file);
+        output.updateText(`${result.action == "Open" ? "Opening" : "Found"} ${result.type == "file" ? "file" : "app"} ${result.file}`);
         if (key === 'Tab') {
             search.setText(result.file);
         }

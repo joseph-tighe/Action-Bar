@@ -7,6 +7,9 @@ const https = require('https');
 const AdmZip = require('adm-zip');
 
 let tray = null;
+var packageCache = null;
+var iconCache = new Map();
+
 console.log(__dirname);
 app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
@@ -165,27 +168,130 @@ function findBestMatch(query, candidates) {
   }
   return { best: candidates[bestIdx], index: bestIdx, score: bestScore };
 }
+function loadPackages() {
+    return new Promise((resolve, reject) => {
+        if (packageCache) return resolve(packageCache);
+
+        exec(
+            'powershell -NoProfile -Command "Get-AppxPackage | Select PackageFamilyName, InstallLocation | ConvertTo-Json"',
+            { maxBuffer: 1024 * 1024 * 10 },
+            (err, stdout) => {
+                if (err) return reject(err);
+
+                packageCache = JSON.parse(stdout);
+                if (!Array.isArray(packageCache))
+                    packageCache = [packageCache];
+
+                resolve(packageCache);
+            }
+        );
+    });
+}
+function resolveAppIdToPath(appId) {
+    return new Promise((resolve) => {
+        const ps = `try{$s=New-Object -ComObject Shell.Application;$f=$s.NameSpace("shell:AppsFolder");$i=$f.ParseName("${appId}");if($i){$i.Path}else{""}}catch{""}`;
+        const enc = Buffer.from(ps, 'utf16le').toString('base64');
+        exec(`powershell -NoProfile -EncodedCommand ${enc}`, { timeout: 5000 }, (err, stdout) => {
+            if (err) { resolve(null); return; }
+            const p = stdout.trim();
+            resolve(p || null);
+        });
+    });
+}
+async function getAppIcon(appObj) {
+    if (!appObj) return null;
+    if (iconCache.has(appObj.name)) return iconCache.get(appObj.name);
+
+    let iconResult = null;
+
+    if (appObj.type === 'uwp') {
+        const family = appObj.appId.split("!")[0];
+        const packages = await loadPackages();
+        const pkg = packages.find(p => p.PackageFamilyName === family);
+        if (pkg) {
+            const manifestPath = path.join(pkg.InstallLocation, "AppxManifest.xml");
+            if (fs.existsSync(manifestPath)) {
+                const xml = fs.readFileSync(manifestPath, "utf8");
+                const match = xml.match(/Square44x44Logo="([^"]+)"/i) || xml.match(/Square150x150Logo="([^"]+)"/i);
+                if (match) {
+                    const relative = match[1].replace(/\//g, "\\");
+                    const candidates = [
+                        relative.replace(".png", ".scale-400.png"),
+                        relative.replace(".png", ".scale-200.png"),
+                        relative.replace(".png", ".scale-150.png"),
+                        relative.replace(".png", ".scale-125.png"),
+                        relative
+                    ];
+                    for (const candidate of candidates) {
+                        const full = path.join(pkg.InstallLocation, candidate);
+                        if (fs.existsSync(full)) { iconResult = full; break; }
+                    }
+                }
+            }
+        }
+    } else if (appObj.type === 'win32') {
+        let target = appObj.iconPath || appObj.targetPath;
+        if (!target && appObj.appId) {
+            target = await resolveAppIdToPath(appObj.appId);
+            if (target) appObj.targetPath = target;
+        }
+        if (target) {
+            target = target.split(',')[0].trim();
+            target = target.replace(/%([^%]+)%/g, (_, key) => process.env[key] || '');
+            target = target.replace(/\//g, '\\');
+            if (target && fs.existsSync(target)) {
+                try {
+                    const nativeImage = await app.getFileIcon(target, { size: 'small' });
+                    iconResult = nativeImage.toDataURL();
+                } catch (e) {
+                    console.error('Icon extract error:', e);
+                }
+            }
+        }
+    }
+
+    iconCache.set(appObj.name, iconResult);
+    return iconResult;
+}
 var appList = [];
-async function getApps() {
+function getApps() {
+  const psScript = `$apps=@();$dirs=@([Environment]::GetFolderPath("CommonStartMenu"),[Environment]::GetFolderPath("StartMenu"));foreach($dir in $dirs){if(Test-Path $dir){Get-ChildItem $dir -Recurse -Filter *.lnk -ErrorAction SilentlyContinue|%{$n=[IO.Path]::GetFileNameWithoutExtension($_.Name);$t="";$i="";try{$s=New-Object -ComObject WScript.Shell;$c=$s.CreateShortcut($_.FullName);$t=$c.TargetPath;$i=$c.IconLocation}catch{};if($n){$apps+=[PSCustomObject]@{Name=$n;TargetPath=$t;IconLocation=$i}}}}};$apps|ConvertTo-Json -Compress`;
+  const encoded = Buffer.from(psScript, 'utf16le').toString('base64');
+
+  exec(
+    `powershell -NoProfile -EncodedCommand ${encoded}`,
+    { maxBuffer: 1024 * 1024 * 10 },
+    (err, stdout) => {
+      if (err) { console.error('Start Menu scan error:', err); return; }
+      try {
+        var win32Apps = JSON.parse(stdout);
+        if (!Array.isArray(win32Apps)) win32Apps = [win32Apps];
+        for (const app of win32Apps) {
+          if (app.Name) {
+            const entry = { name: app.Name, appId: '', type: 'win32', targetPath: app.TargetPath || '', iconPath: app.IconLocation || '' };
+            const idx = appList.findIndex(a => a.name === app.Name);
+            if (idx >= 0) appList[idx] = entry; else appList.push(entry);
+          }
+        }
+      } catch (e) { console.error('Parse error:', e); }
+    }
+  );
+
   exec(
     'powershell -NoProfile -Command "Get-StartApps | ConvertTo-Json"',
-    (err, stdout, stderr) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
-
-      var apps = JSON.parse(stdout);
-      apps = apps.map(a => ({
-        name: a.Name,
-        appId: a.AppID
-      }));
-      for (const app of apps) {
-        if (app.name != undefined) {
-          appList.push(app);
+    { maxBuffer: 1024 * 1024 * 10 },
+    (err, stdout) => {
+      if (err) { console.error(err); return; }
+      try {
+        var apps = JSON.parse(stdout);
+        if (!Array.isArray(apps)) apps = [apps];
+        for (const app of apps) {
+          if (app.Name && !appList.some(a => a.name === app.Name)) {
+            const isUwp = app.AppID && app.AppID.includes('!');
+            appList.push({ name: app.Name, appId: app.AppID || '', type: isUwp ? 'uwp' : 'win32', targetPath: '', iconPath: '' });
+          }
         }
-      }
-      console.log(apps);
+      } catch (e) { console.error('Parse error:', e); }
     }
   );
 }
@@ -287,7 +393,7 @@ function findBestMatchFiles(query, candidates) {
     return findBestMatch(query, candidates);
   }
 }
-function resolvePathForQuery(query, shouldOpen) {
+async function resolvePathForQuery(query, shouldOpen) {
   try {
     if (process.platform !== 'win32') {
       return { ok: false, file: null, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
@@ -299,13 +405,14 @@ function resolvePathForQuery(query, shouldOpen) {
       const closestApp = appList[closest.index];
       if (shouldOpen) {
         console.log(closestApp.appId, closestApp.name);
-        function launchApp(appId) {
-            exec(`explorer.exe shell:AppsFolder\\${appId}`);
+        if (closestApp.type === 'win32' && closestApp.targetPath) {
+          exec(`start "" "${closestApp.targetPath}"`);
+        } else {
+          exec(`explorer.exe shell:AppsFolder\\${closestApp.appId}`);
         }
-
-        launchApp(closestApp.appId);
       }
-      return { ok: true, file: closestApp.name, action: shouldOpen ? 'Open' : 'Found', type: 'app' };
+      const icon = await getAppIcon(closestApp);
+      return { ok: true, file: closestApp.name, action: (shouldOpen ? 'Open' : 'Found'), type: 'app', icon: icon };
     }
 
     closest = findBestMatchFiles(query, filesForSearch);
@@ -325,15 +432,18 @@ function resolvePathForQuery(query, shouldOpen) {
 }
 
 ipcMain.handle('search-apps/files', async (event, query) => {
-  const result = resolvePathForQuery(query, false);
+  const result = await resolvePathForQuery(query, false);
   event.sender.send('open-file', result);
   return result;
 });
 
 ipcMain.handle('search-open-apps/files', async (event, query) => {
-  const result = resolvePathForQuery(query, true);
+  const result = await resolvePathForQuery(query, true);
   event.sender.send('open-file', result);
   return result;
+});
+ipcMain.on('quit', () => {
+  app.quit();
 });
 ipcMain.on('close-window', (event) => {
   toggleWindowVisibility();

@@ -198,7 +198,7 @@ fetch("../config/settings.json").then(response => response.json()).then(data => 
 });
 
 function Quit() {
-  window.close();
+  ipcRenderer.send('quit');
 }
 
 function openSetting() {
