@@ -38,7 +38,7 @@ mainWindow = null;
 app.whenReady().then(() => {
   console.log(__dirname); 
   tray = new Tray(path.join(__dirname, '../../static/images/icon.png'));
-  tray.setToolTip('Launch Hub');
+  tray.setToolTip('Action Bar');
   tray.on('click', () => {
     toggleWindowVisibility();
   })
