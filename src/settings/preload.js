@@ -149,7 +149,14 @@ function renderGroup(value, parent, path) {
     const body = card.querySelector('.section-body');
 
     Object.entries(value).forEach(([key, child]) => {
-      renderGroup(child, body, path.concat(key));
+      const isStringMap = child && typeof child === 'object' && !Array.isArray(child) &&
+        Object.values(child).every(v => typeof v === 'string');
+
+      if (isStringMap) {
+        renderMap(child, body, path.concat(key));
+      } else {
+        renderGroup(child, body, path.concat(key));
+      }
     });
 
     parent.appendChild(card);
@@ -240,6 +247,71 @@ function renderArrayItem(item, parent, path) {
   row.appendChild(input);
   row.appendChild(removeBtn);
   parent.appendChild(row);
+}
+
+function renderMapEntry(key, value, parent, path) {
+  const row = document.createElement('div');
+  row.className = 'map-row';
+
+  const keyInput = document.createElement('input');
+  keyInput.type = 'text';
+  keyInput.className = 'map-key';
+  keyInput.value = key;
+  keyInput.placeholder = 'Alias trigger';
+  keyInput.addEventListener('change', () => {
+    const map = getByPath(path.slice(0, -1));
+    const oldKey = path[path.length - 1];
+    const newKey = keyInput.value;
+    if (newKey && newKey !== oldKey) {
+      map[newKey] = map[oldKey];
+      delete map[oldKey];
+    }
+  });
+
+  const valueInput = document.createElement('input');
+  valueInput.type = 'text';
+  valueInput.className = 'map-value';
+  valueInput.value = value;
+  valueInput.placeholder = 'Replacement text';
+  valueInput.addEventListener('change', () => {
+    updateValue(path, valueInput.value);
+  });
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-btn';
+  removeBtn.textContent = 'Remove';
+  removeBtn.addEventListener('click', () => {
+    const map = getByPath(path.slice(0, -1));
+    delete map[path[path.length - 1]];
+    openSetting(currentGroup);
+  });
+
+  row.appendChild(keyInput);
+  row.appendChild(valueInput);
+  row.appendChild(removeBtn);
+  parent.appendChild(row);
+}
+
+function renderMap(value, parent, path) {
+  const card = createCard(path[path.length - 1]);
+  const body = card.querySelector('.section-body');
+
+  Object.entries(value).forEach(([key, val]) => {
+    renderMapEntry(key, val, body, path.concat(key));
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.textContent = 'Add entry';
+  addBtn.addEventListener('click', () => {
+    const map = getByPath(path);
+    const newKey = '';
+    map[newKey] = '';
+    openSetting(currentGroup);
+  });
+
+  body.appendChild(addBtn);
+  parent.appendChild(card);
 }
 
 function updateValue(path, value) {

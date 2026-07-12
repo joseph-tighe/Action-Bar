@@ -349,6 +349,11 @@ window.addEventListener('DOMContentLoaded', () => {
 getSearch().addEventListener('keyup', (e) => {
   //selector
   const wrappers = document.getElementsByClassName("resultWrapper");
+  for (const i in settings["aliases"]["aliases"]) {
+    if (getSearch().value.toLowerCase().includes(settings["aliases"]["aliases-char"] + i.toLowerCase())) {
+      getSearch().value = getSearch().value.toLowerCase().replace(settings["aliases"]["aliases-char"] + i.toLowerCase(), settings["aliases"]["aliases"][i]);
+    }
+  }
   if (e.key === "ArrowUp") {
     if (wrappers.length === 0) return;
 

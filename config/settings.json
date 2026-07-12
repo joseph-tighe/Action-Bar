@@ -57,5 +57,14 @@
     },
     "answers": {
         "max-amount": 3
+    },
+    "aliases": {
+        "enabled": true,
+        "aliases-char": "/",
+        "aliases": {
+            "codex": "chatGPT",
+            "VScode": "Visual Studio Code",
+            "Google": "Google Chrome"
+        }
     }
 }
