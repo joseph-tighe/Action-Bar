@@ -6,5 +6,11 @@
     "copyFunction": null,
     "settings": {
         "active": false
+    },
+    "metadata": {
+        "name": "Wikipedia",
+        "description": "Search Wikipedia articles",
+        "author": "joseph-tighe",
+        "version": "1.0.0"
     }
 }
