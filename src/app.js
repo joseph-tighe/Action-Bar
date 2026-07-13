@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, ipcRenderer, Menu } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, Menu } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
 const open = require('open');
@@ -6,6 +6,7 @@ const { exec } = require('child_process');
 const https = require('https');
 const AdmZip = require('adm-zip');
 const { resolvePathForQuery } = require('./appFinder');
+const updater = require('./updater/updater');
 
 let tray = null;
 
@@ -43,6 +44,7 @@ app.whenReady().then(() => {
     toggleWindowVisibility();
   })
   mainWindow = createWindow();
+  updater.initialize(settings);
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow();
@@ -68,10 +70,8 @@ app.whenReady().then(() => {
 })
 
 app.on('will-quit', () => {
-  // Unregister a shortcut.
+  updater.stop();
   globalShortcut.unregister(settings['shortcuts']['open-shortcut'])
-
-  // Unregister all shortcuts.
   globalShortcut.unregisterAll()
 })
 
@@ -167,6 +167,12 @@ ipcMain.on('open-settings', (event) => {
 });
 ipcMain.on('update-settings', (event, settings) => {
   fs.writeFileSync(path.join(__dirname, '../../config/settings.json'), JSON.stringify(settings, null, 4));
+});
+ipcMain.on('update-app', () => {
+  updater.quitAndInstall();
+});
+ipcMain.handle('get-update-state', () => {
+  return updater.getLastState();
 });
 ipcMain.on('update-extention-settings', (event, extensionSettings, dirMap) => {
   for (const [name, settings] of Object.entries(extensionSettings)) {

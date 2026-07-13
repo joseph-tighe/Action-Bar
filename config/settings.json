@@ -66,5 +66,10 @@
             "VScode": "Visual Studio Code",
             "Google": "Google Chrome"
         }
+    },
+    "updates": {
+        "enabled": true,
+        "checkOnStartup": true,
+        "downloadAutomatically": true
     }
 }

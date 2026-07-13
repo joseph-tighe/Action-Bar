@@ -27,6 +27,10 @@ saveBtn.addEventListener('click', () => {
   }
 });
 
+ipc.invoke('get-update-state').then(state => {
+  if (state) updater(state);
+});
+
 function formatLabel(text) {
   return String(text)
     .replace(/-/g, ' ')
@@ -329,4 +333,34 @@ function getByPath(path) {
   }
   return target;
 }
+});
+function updater(updateObj) {
+  const updateBtn = document.getElementById('updateBtn');
+  if (!updateBtn) return;
+
+  if (updateObj.error) {
+    updateBtn.textContent = `Error: ${updateObj.error}`;
+    updateBtn.style.display = 'inline-block';
+    updateBtn.onclick = null;
+  } else if (updateObj.isUpdateAvailable) {
+    if (updateObj.isDownloading && !updateObj.isDone) {
+      updateBtn.textContent = `${Math.round(updateObj.progress)}%`;
+      updateBtn.style.display = 'inline-block';
+    } else if (updateObj.isDone) {
+      updateBtn.textContent = 'Update';
+      updateBtn.style.display = 'inline-block';
+      updateBtn.onclick = () => {
+        ipc.send('update-app');
+        updateBtn.textContent = 'Updating...';
+        updateBtn.onclick = null;
+      };
+    }
+  } else {
+    updateBtn.style.display = 'none';
+    updateBtn.textContent = 'Update';
+    updateBtn.onclick = null;
+  }
+}
+ipc.on('updateModal', (event, updateObj) => {
+  updater(updateObj);
 });

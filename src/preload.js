@@ -653,3 +653,22 @@ function listExtentions() {
     answerList.push(answer);
   }
 }
+
+ipcRenderer.on('updateModal', (event, updateObj) => {
+  const el = document.getElementById('update-status');
+  if (!el) return;
+  if (updateObj.error) {
+    el.textContent = `Update error: ${updateObj.error}`;
+    el.style.display = 'block';
+  } else if (updateObj.isUpdateAvailable) {
+    if (updateObj.isDownloading && !updateObj.isDone) {
+      el.textContent = `Updating... ${Math.round(updateObj.progress)}%`;
+      el.style.display = 'block';
+    } else if (updateObj.isDone) {
+      el.textContent = 'Update available — restart to install';
+      el.style.display = 'block';
+    }
+  } else {
+    el.style.display = 'none';
+  }
+});
