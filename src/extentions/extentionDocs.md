@@ -39,7 +39,7 @@ In your manifest file you will specify the name of the function that will be cal
 This property can be null, having it as null is the default value.
 If the value is null the extension will only be called when the user queries it.
 If the value is a function name the extension will call it every time the search bar changes. This function will return a boolean. If it returns true the extension will be called.
-CheckFunction does not take any parameters, yet it is expected that you will get the user's query using `query = (new Search()).getQuery()`.
+CheckFunction takes one parameter: `search` — a Search object used to get the user's query. Use `search.getQuery()` to access the current search text.
 ### copyFunction:
 The copy functions can be null, having it as null is the default value.
 If the value is null when the user presses copy to clipboard the extensions output will be copied to the clipboard.
@@ -105,8 +105,8 @@ function RunFunction(key, output, search) {
 
 ### Check function
 ```js
-function CheckFunction() {
-  const query = (new Search()).getQuery();
+function CheckFunction(search) {
+  const query = search.getQuery();
   if (query.includes("hello")) {
     return true;
   }
