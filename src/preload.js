@@ -273,7 +273,7 @@ function callActionUserSelection(item, hasGone, e) {
 function callActionCheck(item, hasGone, e) {
   if (!hasGone) {
     for (let i = 0; i < features.length; i++) {
-      if (checkFunctions[i] != null && checkFunctions[i]()) {
+      if (checkFunctions[i] != null && checkFunctions[i](new Search())) {
         activeFeatures.push(features[i]);
         let answer = new Answer("../static/images/icon.svg", "Loading...");
         answerList.push(answer);

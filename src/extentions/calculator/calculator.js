@@ -1,5 +1,4 @@
-function canCalculate() {
-  let search = new Search();
+function canCalculate(search) {
   let text = search.getQuery();
   text = text.replaceAll("deg", "");
   text = text.replaceAll("e", "");

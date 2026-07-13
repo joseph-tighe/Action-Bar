@@ -263,7 +263,7 @@ function formatUnit(unit) {
   return unit;
 }
 function RunConverter(key, output, search) {
-  if (canConvert() !== 'nothing') {
+  if (canConvert(search) !== false) {
     output.updateImage("extentions/Conversion/convert.svg");
     values = search.getQuery().split("to");
     if (values.length === 2) {
@@ -310,10 +310,9 @@ function RunConverter(key, output, search) {
   }
 }
 
-function canConvert() {
-  s = new Search();
-  if (s.getQuery().length === 0) return false;
-  if (s.getQuery().includes(" to ")) {
+function canConvert(search) {
+  if (search.getQuery().length === 0) return false;
+  if (search.getQuery().includes(" to ")) {
     return 'converter';
   }
   return false;
