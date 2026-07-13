@@ -19,11 +19,30 @@ async function fetchAsyncDDG(q)
 }
 
 function RunDGG(key, output, search) {
+  if (key === 'Enter') {
+      let query = search.getQuery();
+      let url = `https://duckduckgo.com/?q=${query}`;
+      ipcRenderer.send('open-url', url);
+    return;
+  }
   output.updateImage("extentions/ddg/DDG.svg");
   fetchAsyncDDG(search.getQuery().replaceAll(" ", "+")).then(data => {
     output.updateImage("extentions/ddg/DDG.svg");
     if (data.RelatedTopics.length > 0 && search.isRelevant()) {
-      output.updateText(data.RelatedTopics[0].Text);
+      inputText = ""
+      text = data.RelatedTopics[0].Text
+      abstract = data.Abstract
+      console.log(abstract);
+      if (text == "" || text.includes("Category")) {
+        if (abstract.length > 50) {
+          inputText = abstract.substr(0, 50) + "...";
+        } else {
+          inputText = abstract;
+        }
+      } else {
+        inputText = text;
+      }
+      output.updateText(inputText);
     } else {
       output.destroy();
     }
