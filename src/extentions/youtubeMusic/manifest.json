@@ -10,7 +10,6 @@
     "metadata": {
         "name": "YouTube Music",
         "description": "Search for music recordings via MusicBrainz",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

@@ -10,7 +10,6 @@
     "metadata": {
         "name": "Calculator",
         "description": "Perform mathematical calculations",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

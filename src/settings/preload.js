@@ -77,8 +77,10 @@ function openExtensionStore() {
     contentBody.appendChild(breaker);
     recommendedExtentions = ["joseph-tighe/colorPicker"];
     for (const extention of recommendedExtentions) {
+        let metadata = await fetch(`../../src/extentions/${extention}/manifest.json`).then(response => response.json().metadata);
+
         let btn = document.createElement('button');
-        btn.textContent = extention.split("/").pop() + " by " + extention.split("/")[0];
+        btn.textContent = metadata.name + " by " + extention.split("/")[0] + "<br>" + metadata.description;
         btn.addEventListener('click', () => {
             ipc.send('download-extention', extention);
             btn.textContent = "Downloaded!";

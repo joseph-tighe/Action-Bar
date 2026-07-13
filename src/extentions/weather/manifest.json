@@ -10,7 +10,6 @@
     "metadata": {
         "name": "Weather",
         "description": "Get current weather for any location",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

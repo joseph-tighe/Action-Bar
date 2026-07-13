@@ -10,7 +10,6 @@
     "metadata": {
         "name": "GitHub",
         "description": "Search GitHub repositories and users",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

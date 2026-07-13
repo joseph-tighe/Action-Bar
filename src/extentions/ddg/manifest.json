@@ -10,7 +10,6 @@
     "metadata": {
         "name": "DuckDuckGo",
         "description": "Search the web with DuckDuckGo",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

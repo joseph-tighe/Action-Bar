@@ -10,7 +10,6 @@
     "metadata": {
         "name": "Unit Converter",
         "description": "Convert between different units of measurement",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }

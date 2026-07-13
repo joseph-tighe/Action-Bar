@@ -10,7 +10,6 @@
     "metadata": {
         "name": "Timer",
         "description": "Set and manage timers",
-        "author": "joseph-tighe",
         "version": "1.0.0"
     }
 }
