@@ -16,6 +16,9 @@
       "static/**/*",
       "package.json"
     ],
+    "win": {
+      "icon":"static/images/icon.svg"
+    },
     "extraResources": [
       {
         "from": "static",
