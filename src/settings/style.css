@@ -234,3 +234,14 @@ body {
   color: var(--muted);
   background: var(--panel);
 }
+button div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+button {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 4px;
+}

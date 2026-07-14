@@ -53,7 +53,7 @@ function renderSidebar() {
   extentionDownload.addEventListener('click', openExtensionStore);
   sidebarList.appendChild(extentionDownload);
 }
-function openExtensionStore() {
+async function openExtensionStore() {
     // Text Input < put github repo here
     //
     // Btn List
@@ -77,16 +77,25 @@ function openExtensionStore() {
     contentBody.appendChild(breaker);
     recommendedExtentions = ["joseph-tighe/colorPicker"];
     for (const extention of recommendedExtentions) {
-        let metadata = await fetch(`../../src/extentions/${extention}/manifest.json`).then(response => response.json().metadata);
-
+      try {
+        let manifest = await fetch(`https://raw.githubusercontent.com/${extention}/refs/heads/main/manifest.json`).then(response => response.json());
+        metadata = manifest["metadata"];
+        if (metadata["icon"]) {
+          icon = `https://raw.githubusercontent.com/${extention}/refs/heads/main/${metadata["icon"]}`;
+        } else {
+          icon = "";
+        }
         let btn = document.createElement('button');
-        btn.textContent = metadata.name + " by " + extention.split("/")[0] + "<br>" + metadata.description;
+        btn.innerHTML = `<img src=${icon} alt="No Icon found"></img><div><h3>${metadata.name} - Download now</h3><p>${metadata.description}</p></div>`;
         btn.addEventListener('click', () => {
-            ipc.send('download-extention', extention);
-            btn.textContent = "Downloaded!";
-            btn.disabled = true;
+          ipc.send('download-extention', extention);
+          btn.textContent = "Downloaded!";
+          btn.disabled = true;
         });
         contentBody.appendChild(btn);
+      } catch (e) {
+        console.log("no manifest.json found for " + extention);
+      }
     }
 
 }
