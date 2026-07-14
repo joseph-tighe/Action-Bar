@@ -10,6 +10,7 @@
         "tips": true
     },
     "window": {
+        "start on boot": true,
         "width": 800,
         "height": 500
     },

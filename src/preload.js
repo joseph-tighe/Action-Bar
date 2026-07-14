@@ -60,7 +60,7 @@ class Answer {
     this.resultEl.innerHTML = text;
     this.img = document.createElement('img');
     this.img.src = this.imageUrl;
-    this.img.alt = '';0
+    this.img.alt = '';
     this.resultEl.appendChild(this.img);
     let Index = document.getElementsByClassName('copy').length - 1;
     document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {

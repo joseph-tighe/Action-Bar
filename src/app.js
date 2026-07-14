@@ -1,7 +1,6 @@
 const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, Menu } = require('electron/main')
 const path = require('node:path')
 const fs = require('fs');
-const open = require('open');
 const { exec } = require('child_process');
 const https = require('https');
 const AdmZip = require('adm-zip');
@@ -16,6 +15,11 @@ app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
 
 function createWindow() {
+  app.setLoginItemSettings({
+    openAtLogin: settings['window']['start on boot'],
+    path: app.getPath('exe'),
+    openAsHidden: true
+  });
   const win = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
