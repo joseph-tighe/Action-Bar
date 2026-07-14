@@ -1,6 +1,6 @@
 {
   "name": "action-bar",
-  "version": "26.7.12",
+  "version": "26.7.13",
   "description": "Launches apps and quick search",
   "main": "src/app.js",
   "scripts": {
