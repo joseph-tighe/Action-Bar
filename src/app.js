@@ -195,7 +195,7 @@ ipcMain.on('get-extentions', (event) => {
 });
 
 function downloadExtensionZip(git_repo) {
-  const URL = `https://github.com/${git_repo}/archive/refs/heads/main.zip`;
+  const URL = `https://github.com/${git_repo}/archive/${commitHash}.zip`;
   console.log(URL);
   const name = git_repo.split('/').pop();
   const file = fs.createWriteStream(path.join(__dirname, `../../src/extentions/${name}.zip`));

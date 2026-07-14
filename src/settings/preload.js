@@ -75,26 +75,32 @@ async function openExtensionStore() {
     contentBody.appendChild(Input);
     const breaker = document.createElement('br');
     contentBody.appendChild(breaker);
-    recommendedExtentions = ["joseph-tighe/colorPicker"];
+    let recommendedExtentions = ["joseph-tighe/colorPicker"];
+    let commitHashes = ["48ec3ba585b22b4ff7ca32490203fff2f07d7e52"];
     for (const extention of recommendedExtentions) {
+      commitExists = (await fetch(`https://github.com/${extention}/commit/${commitHashes[recommendedExtentions.indexOf(extention)]}`)).status === 200;
+      if (!commitExists) {
+        console.log("commit not found for " + extention + ": " + commitHashes[recommendedExtentions.indexOf(extention)]);
+        continue;
+      }
       try {
-        let manifest = await fetch(`https://raw.githubusercontent.com/${extention}/refs/heads/main/manifest.json`).then(response => response.json());
+        let manifest = await fetch(`https://raw.githubusercontent.com/${extention}/${commitHashes[recommendedExtentions.indexOf(extention)]}/manifest.json`).then(response => response.json());
         metadata = manifest["metadata"];
         if (metadata["icon"]) {
-          icon = `https://raw.githubusercontent.com/${extention}/refs/heads/main/${metadata["icon"]}`;
+          icon = `https://raw.githubusercontent.com/${extention}/${commitHashes[recommendedExtentions.indexOf(extention)]}/${metadata["icon"]}`;
         } else {
           icon = "";
         }
         let btn = document.createElement('button');
         btn.innerHTML = `<img src=${icon} alt="No Icon found"></img><div><h3>${metadata.name} - Download now</h3><p>${metadata.description}</p></div>`;
         btn.addEventListener('click', () => {
-          ipc.send('download-extention', extention);
+          ipc.send('download-extention', extention, commitHashes[recommendedExtentions.indexOf(extention)]);
           btn.textContent = "Downloaded!";
           btn.disabled = true;
         });
         contentBody.appendChild(btn);
       } catch (e) {
-        console.log("no manifest.json found for " + extention);
+        console.log("no manifest.json found for " + extention, e);
       }
     }
 
