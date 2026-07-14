@@ -10,6 +10,7 @@
     "metadata": {
         "name": "DuckDuckGo",
         "description": "Search the web with DuckDuckGo",
+        "icon": "DDG.svg",
         "version": "1.0.0"
     }
 }

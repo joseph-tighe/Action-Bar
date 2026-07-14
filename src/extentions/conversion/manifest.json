@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Unit Converter",
         "description": "Convert between different units of measurement",
+        "icon": "convert.svg",
         "version": "1.0.0"
     }
 }

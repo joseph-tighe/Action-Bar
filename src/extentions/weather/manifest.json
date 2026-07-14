@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Weather",
         "description": "Get current weather for any location",
+        "icon": "weather.svg",
         "version": "1.0.0"
     }
 }

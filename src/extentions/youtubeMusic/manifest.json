@@ -10,6 +10,7 @@
     "metadata": {
         "name": "YouTube Music",
         "description": "Search for music recordings via MusicBrainz",
+        "icon": "music.svg",
         "version": "1.0.0"
     }
 }

@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Calculator",
         "description": "Perform mathematical calculations",
+        "icon": "calculator.svg",
         "version": "1.0.0"
     }
 }

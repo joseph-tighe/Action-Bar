@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Wikipedia",
         "description": "Search Wikipedia articles",
+        "icon": "wiki.svg",
         "version": "1.0.0"
     }
 }

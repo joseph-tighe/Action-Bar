@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Open",
         "description": "Open files and applications",
+        "icon": "app.svg",
         "version": "1.0.0"
     }
 }

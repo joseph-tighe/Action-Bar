@@ -10,6 +10,7 @@
     "metadata": {
         "name": "Timer",
         "description": "Set and manage timers",
+        "icon": "timer.svg",
         "version": "1.0.0"
     }
 }
