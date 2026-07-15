@@ -5,13 +5,56 @@ var settingsLoaded = false;
 var settings = {};
 var activeFeatures = [];
 var features = [];
-var runFunctions = [];
-var checkFunctions = [];
-var copyFunctions = [];
 var ResponseId = 0;
-var hasDone = false;
 var answerList = [];
 var pipelines = [];
+class Extention {
+  constructor(name, runFunction, checkFunction=null, copyFunction=null, isDefualt=false) {
+    this.name = name
+    this.handler = runFunction
+    this.checkFunction = checkFunction
+    this.copyFunction = copyFunction
+    this.isDefualt = isDefualt;
+    if (this.copyFunction == null) {
+      this.copyFunction = function(text) {
+        navigator.clipboard.writeText(text);
+      }
+    }
+  }
+  getName() {
+    return this.name;
+  }
+  run(key, answer, search) {
+    this.handler(key, answer, search);
+  }
+  check(search) {
+    return this.checkFunction(search);
+  }
+  copy(text) {
+    this.copyFunction(text);
+  }
+  TryRun(key, answer, search) {
+    if (this.canCall(search)) {
+      this.handler(key, answer, search);
+    } else {
+      answer.destroy();
+    }
+  }
+  canCall(search) {
+    return this.howCall(search) != "false";
+  }
+  howCall(search) {
+     if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + this.name) {
+      return "Explicit"
+    } else if (this.checkFunction != null && this.checkFunction != undefined && this.checkFunction(search)) {
+      return "Checks Passed"
+    } else if (this.isDefualt) {
+      return "Default"
+    } else {
+      return "false";
+    }
+  }
+}
 class Search {
   constructor() {
     this.text = getSearch().value;
@@ -64,8 +107,8 @@ class Answer {
     this.resultEl.appendChild(this.img);
     let Index = document.getElementsByClassName('copy').length - 1;
     document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {
-      if (copyFunctions[features.indexOf(activeFeatures[Index])] != undefined || copyFunctions[features.indexOf(activeFeatures[Index])] != null) {
-        copyFunctions[features.indexOf(activeFeatures[Index])](document.getElementsByClassName('result')[Index].textContent);
+      if (activeFeatures[Index].copyFunction != undefined || activeFeatures[Index].copyFunction != null) {
+        activeFeatures[Index].copyFunction(document.getElementsByClassName('result')[Index].textContent);
       } else {
         var x = document.getElementsByClassName('result')[Index].textContent;
         navigator.clipboard.writeText(x);
@@ -218,98 +261,40 @@ function callPipeWith(feature) {
     }
   }
 }
-function userSelection() {
-  if (!settings['tool-decloration']['tool-declorable']) return 'nothing';
-  value = getSearch().value.toLowerCase();
-  if (value[0] == settings['tool-decloration']['tool-decloration-char']) {
-    for (feature of features) {
-      if (value.split(" ")[0].includes(feature.toLowerCase())) {
-        return feature;
-      }
-    }
-    if (value.split(" ")[0].includes("quit")) {
-      return 'quit';
-    } else if (value.split(" ")[0].includes("settings")) {
-      return 'settings';
-    }
-    return 'autocomplete';
-  } else if (value[0] == settings['pipelines']['noting-char']) {
-    for (const key in pipelines) {
-      let pipe = pipelines[key];
-      if (value.split(" ")[0].includes(pipe.name.toLowerCase())) {
-        return pipe.name;
-      }
-    }
-    return 'autocomplete';
-  }
-  return 'nothing';
-}
-function callActionUserSelection(item, hasGone, e) {
-  for (let i = 0; i < features.length; i++) {
-    if (item === features[i]) {
-      activeFeatures.push(features[i]);
-      let answer = new Answer("../static/images/icon.svg", "Loading...");
-      answerList.push(answer);
-      runFunctions[i](e.key, answer, new Search());
-      callPipeWith(features[i]);
-      return true;
+function callActionWithAutocomplete(e) {
+  //autocomplete
+  if (getSearch().value[0] == settings['tool-decloration']['tool-decloration-char']) {
+    didFind = autocomplete(e.key);
+    if (didFind) {
+      return;
     }
   }
-  if (!hasGone) {
-    if (item === 'quit') {
-      Quit();
-      return true;
-    } else if (item === 'settings') {
-      openSetting();
-      return true;
-    } if (item === 'autocomplete') {
-      autocomplete(e.key);
-      
-      return true;
-    }
-  }
-  return hasGone;
-}
-function callActionCheck(item, hasGone, e) {
-  if (!hasGone) {
-    for (let i = 0; i < features.length; i++) {
-      if (checkFunctions[i] != null && checkFunctions[i](new Search())) {
-        activeFeatures.push(features[i]);
-        let answer = new Answer("../static/images/icon.svg", "Loading...");
-        answerList.push(answer);
-        runFunctions[i](e.key, answer, new Search());
-        callPipeWith(features[i]);
-        return true;
-      }
-    }
-  }
-  return hasGone;
-}
-function callActionDefult(item, hasGone, e) {
-  if (!hasGone) {
-    if (getSearch().value.length > 0) {
-      for (let i = 0; i < settings["extensions"]['defult-extentions'].length; i++) {
-        let answer = new Answer("../static/images/icon.svg", "Loading...");
-        answer.setLoading(true);
-        answerList.push(answer);
-        runFunctions[features.indexOf(settings["extensions"]['defult-extentions'][i])](e.key, answer, new Search());
-        callPipeWith(settings["extensions"]['defult-extentions'][i]);
-        activeFeatures.push(settings["extensions"]['defult-extentions'][i]);
-      }
-    } else {
-      const results = document.getElementById('results');
-      for (const child of results.children) {
-        results.removeChild(child);
-      }
-    }
-  }
+  callAction(e);
 }
 function callAction(e) {
-  var item = userSelection();
-  var hasGone = false;
-  hasGone = callActionUserSelection(item, hasGone, e);
-  callActionCheck(item, hasGone, e);
-  callActionDefult(item, hasGone, e);
+  //call
+  let toCall = [];
+  let search = new Search();
+  for (let i = 0; i < features.length; i++) {
+    if (features[i].canCall(search)) {
+      toCall.push(features[i]);
+    }
+  }
+  priority = {"Explicit":0, "Checks Passed":1, "Default":2, "false":3};
+  toCall.sort((a, b) => priority[a.howCall(search)] - priority[b.howCall(search)]);
+  for (let i = 0; i < toCall.length; i++) {
+    activeFeatures.push(toCall[i]);
+    let answer = new Answer("../static/images/icon.svg", "Loading...");
+    answer.setLoading(true);
+    answerList.push(answer);
+    toCall[i].run(e.key, answer, search);
+  }
+  //Exemptions settings / quit
+  if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + "settings") {
+    openSetting();
+  } else if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + "quit") {
+    Quit();
+  } 
 }
 
 ipcRenderer.on('focus-search', () => {
@@ -345,8 +330,7 @@ window.addEventListener('DOMContentLoaded', () => {
       s.click();
     }
   }, true);
-
-getSearch().addEventListener('keyup', (e) => {
+function manageSelector(e) {
   //selector
   const wrappers = document.getElementsByClassName("resultWrapper");
   for (const i in settings["aliases"]["aliases"]) {
@@ -355,7 +339,7 @@ getSearch().addEventListener('keyup', (e) => {
     }
   }
   if (e.key === "ArrowUp") {
-    if (wrappers.length === 0) return;
+    if (wrappers.length === 0) return true;
 
     for (let i = 0; i < wrappers.length; i++) {
       if (wrappers[i].classList.contains("selector")) {
@@ -364,11 +348,11 @@ getSearch().addEventListener('keyup', (e) => {
         break;
       }
     }
-    return;
+    return true;
   }
 
   if (e.key === "ArrowDown") {
-    if (wrappers.length === 0) return;
+    if (wrappers.length === 0) return true;
 
     for (let i = 0; i < wrappers.length; i++) {
       if (wrappers[i].classList.contains("selector")) {
@@ -377,22 +361,28 @@ getSearch().addEventListener('keyup', (e) => {
         break;
       }
     }
-    return;
+    return true;
   }
-  //autocomplete
+  //enter
   if (e.key === "Enter" || e.key === "Tab") {
-    if (wrappers.length === 0) return;
+    if (wrappers.length === 0) return true;
 
     for (let i = 0; i < wrappers.length; i++) {
       if (wrappers[i].classList.contains("selector")) {
         if (activeFeatures.length === 0) {
           autocompleteEnter(answerList[i]);
         } else {
-          runFunctions[features.indexOf(activeFeatures[i])](e.key, answerList[i], new Search());
-          callPipeWith(activeFeatures[i]);
+          activeFeatures[i].run(e.key, answerList[i], new Search());
         }
       }
     }
+    return true;
+  }
+  return false;
+}
+getSearch().addEventListener('keyup', (e) => {
+  shouldReturn = manageSelector(e);
+  if (shouldReturn) {
     return;
   }
   //clear all
@@ -402,10 +392,10 @@ getSearch().addEventListener('keyup', (e) => {
   //load extention answers
   if (e.key && !(e.key == "Enter" || e.key == "Tab" || e.key == "Escape" || e.key == "ArrowUp" || e.key == "ArrowDown" || search.value == "?")) {
     ResponseId++;
-    hasDone = false;
-    callAction(e);
+    callActionWithAutocomplete(e);
   }
   //load pipelines
+  /*
   if (search.value[0] == (settings['pipelines']['noting-char'])) {
     if (e.key === 'Enter') {
       name = search.value.split(settings['pipelines']['noting-char'])[1];
@@ -417,7 +407,7 @@ getSearch().addEventListener('keyup', (e) => {
         }
       }
     }
-  }
+  }*/
   //help
   if (e.key === "Escape") {
     ipcRenderer.send('close-window');
@@ -476,8 +466,8 @@ function autocomplete(pressedKey) {
   const search = getSearch();
   var feats = [];
   for (const feature of features) {
-    if ((settings['tool-decloration']['tool-decloration-char'] + feature.toLowerCase()).includes(search.value.toLowerCase())) {
-      feats.push(feature);
+    if ((settings['tool-decloration']['tool-decloration-char'] + feature.getName().toLowerCase()).includes(search.value.toLowerCase())) {
+      feats.push(feature.getName());
     }
   }
   if ((settings['tool-decloration']['tool-decloration-char'] + "settings").includes(search.value.toLowerCase())) {
@@ -496,6 +486,11 @@ function autocomplete(pressedKey) {
     answerList.push(answer);
     c++;
     if (c == settings["answers"]["max-amount"]) break;
+  }
+  if (feats.length != 0) {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -521,10 +516,11 @@ ipcRenderer.on('get-extentions', (event, files) => {
         "copyFunction": ${data.copyFunction}
       }  
     })();`);
-      features.push(data.name.toLowerCase());
-      runFunctions.push(feature.RunFunction);
-      checkFunctions.push(feature.CheckFunction);
-      copyFunctions.push(feature.copyFunction);
+      if (settings['extensions']['defult-extentions'].includes(data.name)) {
+        features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, true));
+      } else {
+        features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, false));
+      }
     }
   }
 })();
@@ -649,7 +645,7 @@ function clearAnswers() {
 }
 function listExtentions() {
   for (var i = 0; i < features.length || i < 7; i++) {
-    answer = new Answer("../static/images/icon.svg", settings["tool-decloration"]["tool-decloration-char"] + features[i], true);
+    answer = new Answer("../static/images/icon.svg", settings["tool-decloration"]["tool-decloration-char"] + features[i].getName(), true);
     answerList.push(answer);
   }
 }
