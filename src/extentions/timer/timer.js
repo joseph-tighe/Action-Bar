@@ -1,3 +1,6 @@
+function formatTimeInt(x) {
+  return Math.floor(x).toString().padStart(2, "0");
+}
 function RunTimer(key, output, search) {
   var value;
   output.updateImage("extentions/timer/timer.svg");
@@ -13,7 +16,7 @@ function RunTimer(key, output, search) {
   if (numbers.length === 1) time = parseInt(numbers[0]) * 60;
   else if (numbers.length === 2) time = parseInt(numbers[0]) * 60 + parseInt(numbers[1]);
   else if (numbers.length === 3) time = parseInt(numbers[0]) * 3600 + parseInt(numbers[1]) * 60 + parseInt(numbers[2]);
-  output.updateText(`${floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0"));
+  output.updateText(`${Math.floor((time%(60*60*60))/(60*60))}:${formatTimeInt((time%(60*60))/60)}:${formatTimeInt(time%60)}`.replaceAll("NaN", "0"));
   if (!(key === 'Enter') || isNaN(time) || time < 0 || time > 86400) return 'nothing';
 
   ipcRenderer.send('show-notification', { title: 'Timer', body: 'Started timer' });
