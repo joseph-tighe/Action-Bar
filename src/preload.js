@@ -1,243 +1,14 @@
-const { contextBridge, ipcRenderer } = require('electron');
-
-//Load settings
-var settingsLoaded = false;
-var settings = {};
-var activeFeatures = [];
-var features = [];
-var ResponseId = 0;
-var answerList = [];
-var pipelines = [];
-class Extention {
-  constructor(name, runFunction, checkFunction=null, copyFunction=null, isDefualt=false) {
-    this.name = name
-    this.handler = runFunction
-    this.checkFunction = checkFunction
-    this.copyFunction = copyFunction
-    this.isDefualt = isDefualt;
-    if (this.copyFunction == null) {
-      this.copyFunction = function(text) {
-        navigator.clipboard.writeText(text);
-      }
-    }
-  }
-  getName() {
-    return this.name;
-  }
-  run(key, answer, search) {
-    this.handler(key, answer, search);
-  }
-  check(search) {
-    return this.checkFunction(search);
-  }
-  copy(text) {
-    this.copyFunction(text);
-  }
-  TryRun(key, answer, search) {
-    if (this.canCall(search)) {
-      this.handler(key, answer, search);
-    } else {
-      answer.destroy();
-    }
-  }
-  canCall(search) {
-    return this.howCall(search) != "false";
-  }
-  howCall(search) {
-     if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + this.name) {
-      return "Explicit"
-    } else if (this.checkFunction != null && this.checkFunction != undefined && this.checkFunction(search)) {
-      return "Checks Passed"
-    } else if (this.isDefualt) {
-      return "Default"
-    } else {
-      return "false";
-    }
-  }
-}
-class Search {
-  constructor() {
-    this.text = getSearch().value;
-    this.prefix = this.text.split(" ")[0];
-    if (this.prefix[0] == settings['tool-decloration']['tool-decloration-char']) {
-      this.query = this.text.split(" ").splice(1).join(" ");
-    } else {
-      this.prefix = "";
-      this.query = this.text;
-    }
-  }
-  getFullText() {
-    return this.text;
-  }
-  getPrefix() {
-    return this.prefix;
-  }
-  getQuery() {
-    return this.query;
-  }
-  setText(text) {
-    this.text = text;
-    getSearch().value = text;
-  }
-  isRelevant() {
-    return this.text == getSearch().value;
-  }
-}
-class Answer {
-  constructor(imageUrl, text, overRideLimit=false) {
-    this.text = text;
-    let selector = false;
-    if (document.getElementsByClassName('result').length > settings['answers']['max-amount'] && !overRideLimit) {
-      return;
-    } else if (document.getElementsByClassName('result').length == 0) {
-      selector = true;
-    }
-    this.imageUrl = imageUrl;
-    this.wrapper = document.createElement('div');
-    results.appendChild(this.wrapper);
-    this.wrapper.className = `resultWrapper${selector ? " selector" : ""}`;
-    this.wrapper.innerHTML = '<div class="copy"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" /><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" /></svg></div>';
-    this.resultEl = document.createElement('div');
-    this.resultEl.className = "result";
-    this.wrapper.appendChild(this.resultEl);
-    this.resultEl.innerHTML = text;
-    this.img = document.createElement('img');
-    this.img.src = this.imageUrl;
-    this.img.alt = '';
-    this.resultEl.appendChild(this.img);
-    let Index = document.getElementsByClassName('copy').length - 1;
-    document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {
-      if (activeFeatures[Index].copyFunction != undefined || activeFeatures[Index].copyFunction != null) {
-        activeFeatures[Index].copyFunction(document.getElementsByClassName('result')[Index].textContent);
-      } else {
-        var x = document.getElementsByClassName('result')[Index].textContent;
-        navigator.clipboard.writeText(x);
-      }
-
-      document.getElementsByClassName('copy')[Index].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard-check" viewBox="0 0 16 16"><path stroke="lime" fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
-      setTimeout(() => {
-        document.getElementsByClassName('copy')[Index].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-clipboard" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>';
-      }, 1500);
-    });
-  }
-  setLoading(istrue) {
-  if (istrue) {
-    this.resultEl.innerHTML = '';
-    this.loader = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.loader.setAttribute('class', 'loader');
-    this.loader.setAttribute('viewBox', '0 0 16 16');
-    this.loader.setAttribute('width', '20');
-    this.loader.setAttribute('height', '20');
-    this.loader.setAttribute('aria-label', 'Loading');
-
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', '8');
-    circle.setAttribute('cy', '8');
-    circle.setAttribute('r', '6');
-    circle.setAttribute('fill', 'none');
-    circle.setAttribute('stroke', '#0877d1');
-    circle.setAttribute('stroke-width', '2');
-    circle.setAttribute('stroke-linecap', 'round');
-    //circle.setAttribute('stroke-dasharray', '24 16');
-
-    this.loader.appendChild(circle);
-    this.resultEl.appendChild(this.loader);
-  } else {
-    this.resultEl.innerHTML = this.text;
-  }
-}
-  updateText(text) {
-    this.setLoading(false);
-    this.text = text;
-    this.resultEl.innerHTML = text;
-    this.resultEl.appendChild(this.img);
-  }
-  updateImage(imageUrl) {
-    this.imageUrl = imageUrl;
-    this.img.src = imageUrl;
-  }
-  getText() {
-    return this.text;
-  }
-  getImageUrl() {
-    return this.imageUrl;
-  }
-  getWrapper() {
-    return this.wrapper;
-  }
-  destroy() {
-    try {
-      this.wrapper.remove();
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  removeIcon() {
-    this.resultEl.removeChild(this.img);
-  }
-  addIcon() {
-    this.resultEl.appendChild(this.img);
-  }
-}
-class PipelineSearch {
-  constructor(text) {
-    this.text = text;
-    this.prefix = "";
-    this.query = this.text;
-  }
-  getFullText() {
-    return this.text;
-  }
-  getPrefix() {
-    return this.prefix;
-  }
-  getQuery() {
-    return this.query;
-  }
-  setText(text) {
-    this.text = text;
-    getSearch().value = text;
-  }
-  isRelevant() {
-    return this.text == getSearch().value;
-  }
-}
-class PipelineAnswer {
-  constructor(imageUrl, text) {
-    this.text = text;
-    this.imageUrl = imageUrl;
-    this.img = {src:null};
-    this.wrapper = null;
-  }
-  getText() {
-    return this.text;
-  }
-  getImageUrl() {
-    return this.imageUrl;
-  }
-  getWrapper() {
-    return this.wrapper;
-  }
-  destroy() {
-  }
-  removeIcon() {
-    this.resultEl.removeChild(this.img);
-  }
-  addIcon() {
-    this.resultEl.appendChild(this.img);
-  }
-  updateText(text) {
-    this.text = text;
-  }
-  updateImage(imageUrl) {
-    this.imageUrl = imageUrl;
-    this.img.src = imageUrl;
-  }
-}
+const { ipcRenderer } = require('electron');
+const state = require('./preload/state');
+require('./preload/Extension');
+const { Search } = require('./preload/Search');
+const { Answer } = require('./preload/Answer');
+const { Pipeline } = require('./preload/pipeline');
+const { autocomplete } = require('./preload/autocomplete');
 
 fetch("../config/settings.json").then(response => response.json()).then(data => {
-  settings = data;
-  settingsLoaded = true;
+  state.settings = data;
+  state.settingsLoaded = true;
 });
 
 function Quit() {
@@ -246,24 +17,38 @@ function Quit() {
 
 function openSetting() {
   ipcRenderer.send('open-settings');
-  getSearch().value = "";
+  state.getSearch().value = "";
 }
 
-function getSearch() { return document.getElementById('search'); }
-
-const isAsync = fn => fn && fn.constructor && fn.constructor.name === 'AsyncFunction';
-function callPipeWith(feature) {
-  for (const pipe of pipelines) {
-    if (pipe.trigger.split(" ")[0] == "with" && pipe.trigger.split(" ")[1] == feature && pipe.enabled) {
-      const x = new Pipeline(pipe);
-      x.run().catch((error) => console.error("Pipeline failed:", error));
-      return;
-    }
+function clearAnswers() {
+  for (let i = 0; i < state.answerList.length; i++) {
+    state.answerList[i].destroy();
+  }
+  state.answerList = [];
+  const results = state.getResults();
+  for (const child of results.children) {
+    results.removeChild(child);
   }
 }
+
+function autocompleteEnter(answer) {
+  clearAnswers();
+  if (answer.getText() != "") {
+    state.getSearch().value = answer.getText();
+    state.getSearch().focus();
+  }
+  callAction({key:"a"});
+}
+
+function listExtentions() {
+  for (var i = 0; i < state.features.length || i < 7; i++) {
+    let answer = new Answer("../static/images/icon.svg", state.settings["tool-decloration"]["tool-decloration-char"] + state.features[i].getName(), true);
+    state.answerList.push(answer);
+  }
+}
+
 function callActionWithAutocomplete(e) {
-  //autocomplete
-  if (getSearch().value[0] == settings['tool-decloration']['tool-decloration-char']) {
+  if (state.getSearch().value[0] == state.settings['tool-decloration']['tool-decloration-char']) {
     didFind = autocomplete(e.key);
     if (didFind) {
       return;
@@ -271,35 +56,34 @@ function callActionWithAutocomplete(e) {
   }
   callAction(e);
 }
+
 function callAction(e) {
-  //call
   let toCall = [];
   let search = new Search();
-  for (let i = 0; i < features.length; i++) {
-    if (features[i].canCall(search)) {
-      toCall.push(features[i]);
+  for (let i = 0; i < state.features.length; i++) {
+    if (state.features[i].canCall(search)) {
+      toCall.push(state.features[i]);
     }
   }
   priority = {"Explicit":0, "Checks Passed":1, "Default":2, "false":3};
   toCall.sort((a, b) => priority[a.howCall(search)] - priority[b.howCall(search)]);
   for (let i = 0; i < toCall.length; i++) {
-    activeFeatures.push(toCall[i]);
+    state.activeFeatures.push(toCall[i]);
     let answer = new Answer("../static/images/icon.svg", "Loading...");
     answer.setLoading(true);
-    answerList.push(answer);
+    state.answerList.push(answer);
     toCall[i].run(e.key, answer, search);
   }
-  //Exemptions settings / quit
-  if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + "settings") {
+  if (search.getPrefix() == state.settings['tool-decloration']['tool-decloration-char'] + "settings") {
     openSetting();
-  } else if (search.getPrefix() == settings['tool-decloration']['tool-decloration-char'] + "quit") {
+  } else if (search.getPrefix() == state.settings['tool-decloration']['tool-decloration-char'] + "quit") {
     Quit();
-  } 
+  }
 }
 
 ipcRenderer.on('focus-search', () => {
   try {
-    getSearch().focus();
+    state.getSearch().focus();
   } catch (e) {
     console.log(e);
   }
@@ -308,7 +92,7 @@ ipcRenderer.on('focus-search', () => {
 window.addEventListener('DOMContentLoaded', () => {
   const start = Date.now();
   function waitForSearch() {
-    const s = getSearch();
+    const s = state.getSearch();
     if (s) {
       s.click();
       return;
@@ -320,7 +104,7 @@ window.addEventListener('DOMContentLoaded', () => {
   waitForSearch();
 
   document.addEventListener('click', (e) => {
-    const s = getSearch();
+    const s = state.getSearch();
     if (!s) return;
     if (e.target.closest && e.target.closest('#search')) {
       e.preventDefault();
@@ -330,325 +114,102 @@ window.addEventListener('DOMContentLoaded', () => {
       s.click();
     }
   }, true);
-function manageSelector(e) {
-  //selector
-  const wrappers = document.getElementsByClassName("resultWrapper");
-  for (const i in settings["aliases"]["aliases"]) {
-    if (getSearch().value.toLowerCase().includes(settings["aliases"]["aliases-char"] + i.toLowerCase())) {
-      getSearch().value = getSearch().value.toLowerCase().replace(settings["aliases"]["aliases-char"] + i.toLowerCase(), settings["aliases"]["aliases"][i]);
-    }
-  }
-  if (e.key === "ArrowUp") {
-    if (wrappers.length === 0) return true;
 
-    for (let i = 0; i < wrappers.length; i++) {
-      if (wrappers[i].classList.contains("selector")) {
-        wrappers[i].classList.remove("selector");
-        wrappers[(i - 1 + wrappers.length) % wrappers.length].classList.add("selector");
-        break;
+  function manageSelector(e) {
+    const wrappers = document.getElementsByClassName("resultWrapper");
+    for (const i in state.settings["aliases"]["aliases"]) {
+      if (state.getSearch().value.toLowerCase().includes(state.settings["aliases"]["aliases-char"] + i.toLowerCase())) {
+        state.getSearch().value = state.getSearch().value.toLowerCase().replace(state.settings["aliases"]["aliases-char"] + i.toLowerCase(), state.settings["aliases"]["aliases"][i]);
       }
     }
-    return true;
-  }
-
-  if (e.key === "ArrowDown") {
-    if (wrappers.length === 0) return true;
-
-    for (let i = 0; i < wrappers.length; i++) {
-      if (wrappers[i].classList.contains("selector")) {
-        wrappers[i].classList.remove("selector");
-        wrappers[(i + 1) % wrappers.length].classList.add("selector");
-        break;
-      }
-    }
-    return true;
-  }
-  //enter
-  if (e.key === "Enter" || e.key === "Tab") {
-    if (wrappers.length === 0) return true;
-
-    for (let i = 0; i < wrappers.length; i++) {
-      if (wrappers[i].classList.contains("selector")) {
-        if (activeFeatures.length === 0) {
-          autocompleteEnter(answerList[i]);
-        } else {
-          activeFeatures[i].run(e.key, answerList[i], new Search());
+    if (e.key === "ArrowUp") {
+      if (wrappers.length === 0) return true;
+      for (let i = 0; i < wrappers.length; i++) {
+        if (wrappers[i].classList.contains("selector")) {
+          wrappers[i].classList.remove("selector");
+          wrappers[(i - 1 + wrappers.length) % wrappers.length].classList.add("selector");
+          break;
         }
       }
+      return true;
     }
-    return true;
-  }
-  return false;
-}
-getSearch().addEventListener('keyup', (e) => {
-  shouldReturn = manageSelector(e);
-  if (shouldReturn) {
-    return;
-  }
-  //clear all
-  activeFeatures = []
-  clearAnswers();
-  search = getSearch();
-  //load extention answers
-  if (e.key && !(e.key == "Enter" || e.key == "Tab" || e.key == "Escape" || e.key == "ArrowUp" || e.key == "ArrowDown" || search.value == "?")) {
-    ResponseId++;
-    callActionWithAutocomplete(e);
-  }
-  //load pipelines
-  /*
-  if (search.value[0] == (settings['pipelines']['noting-char'])) {
-    if (e.key === 'Enter') {
-      name = search.value.split(settings['pipelines']['noting-char'])[1];
-      for (const pipe in pipelines) {
-        if (pipelines[pipe].name == name && pipelines[pipe].trigger == "call" && pipelines[pipe].enabled) {
-          x = new Pipeline(pipelines[pipe]);
-          x.run();
-          return;
+    if (e.key === "ArrowDown") {
+      if (wrappers.length === 0) return true;
+      for (let i = 0; i < wrappers.length; i++) {
+        if (wrappers[i].classList.contains("selector")) {
+          wrappers[i].classList.remove("selector");
+          wrappers[(i + 1) % wrappers.length].classList.add("selector");
+          break;
         }
       }
+      return true;
     }
-  }*/
-  //help
-  if (e.key === "Escape") {
-    ipcRenderer.send('close-window');
-    return;
+    if (e.key === "Enter" || e.key === "Tab") {
+      if (wrappers.length === 0) return true;
+      for (let i = 0; i < wrappers.length; i++) {
+        if (wrappers[i].classList.contains("selector")) {
+          if (state.activeFeatures.length === 0) {
+            autocompleteEnter(state.answerList[i]);
+          } else {
+            state.activeFeatures[i].run(e.key, state.answerList[i], new Search());
+          }
+        }
+      }
+      return true;
+    }
+    return false;
   }
-  
-  if (search.value == "?") {
-    listExtentions()
-  }
-  return;
-});
 
+  state.getSearch().addEventListener('keyup', (e) => {
+    let shouldReturn = manageSelector(e);
+    if (shouldReturn) {
+      return;
+    }
+    state.activeFeatures = []
+    clearAnswers();
+    let search = state.getSearch();
+    if (e.key && !(e.key == "Enter" || e.key == "Tab" || e.key == "Escape" || e.key == "ArrowUp" || e.key == "ArrowDown" || search.value == "?")) {
+      state.ResponseId++;
+      callActionWithAutocomplete(e);
+    }
+    if (e.key === "Escape") {
+      ipcRenderer.send('close-window');
+      return;
+    }
+    if (search.value == "?") {
+      listExtentions()
+    }
+    return;
+  });
 
   setTimeout(async () => {
-    while (!settingsLoaded) {
+    while (!state.settingsLoaded) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    document.documentElement.style.setProperty('--background', settings['style']['background']);
-    document.documentElement.style.setProperty('--foreground', settings['style']['foreground']);
-    document.documentElement.style.setProperty('--borderradius', settings['style']['borderradius']);
-    document.documentElement.style.setProperty('--shadowstrength', settings['style']['shadowstrength']);
-    document.documentElement.style.setProperty('--answerbarwidth', settings['style']['answerbarwidth']);
-    document.documentElement.style.setProperty('--searchwidth', settings['style']['searchwidth']);
-    document.documentElement.style.setProperty('--bottomradius', parseFloat(settings['style']['answerbarwidth'].replace("%", "")) >= 99 ? '0px' : settings['style']['borderradius']);
-    document.documentElement.style.setProperty('--expandability', (100 - parseFloat(settings['style']['expandability'].replace("%", ""))) / 100);
-    if (settings['style']['tips']) {
-    var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
-    var placeholderIndex = 1;
-
-    setInterval(() => {
-      if (search.value == "") {
-        search.placeholder = placeholders[placeholderIndex];
-        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
-      }
-    }, 6000);
-  }
+    document.documentElement.style.setProperty('--background', state.settings['style']['background']);
+    document.documentElement.style.setProperty('--foreground', state.settings['style']['foreground']);
+    document.documentElement.style.setProperty('--borderradius', state.settings['style']['borderradius']);
+    document.documentElement.style.setProperty('--shadowstrength', state.settings['style']['shadowstrength']);
+    document.documentElement.style.setProperty('--answerbarwidth', state.settings['style']['answerbarwidth']);
+    document.documentElement.style.setProperty('--searchwidth', state.settings['style']['searchwidth']);
+    document.documentElement.style.setProperty('--bottomradius', parseFloat(state.settings['style']['answerbarwidth'].replace("%", "")) >= 99 ? '0px' : state.settings['style']['borderradius']);
+    document.documentElement.style.setProperty('--expandability', (100 - parseFloat(state.settings['style']['expandability'].replace("%", ""))) / 100);
+    if (state.settings['style']['tips']) {
+      var placeholders = ["Search", "Try @Extention to call an extention", "Just type for your defult extentions"];
+      var placeholderIndex = 1;
+      setInterval(() => {
+        if (search.value == "") {
+          search.placeholder = placeholders[placeholderIndex];
+          placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+        }
+      }, 6000);
+    }
   }, 100);
 });
 
-function floor(x) {
-  return Math.floor(x);
-}
-function formatTimeInt(x) {
-  return floor(x).toString().padStart(2, "0");
-}
-function autocompleteEnter(answer) {
-  clearAnswers();
-  if (answer.getText() != "") {
-    getSearch().value = answer.getText();
-    getSearch().focus();
-  }
-  callAction({key:"a"});
-  
-}
-function autocomplete(pressedKey) {
-  const search = getSearch();
-  var feats = [];
-  for (const feature of features) {
-    if ((settings['tool-decloration']['tool-decloration-char'] + feature.getName().toLowerCase()).includes(search.value.toLowerCase())) {
-      feats.push(feature.getName());
-    }
-  }
-  if ((settings['tool-decloration']['tool-decloration-char'] + "settings").includes(search.value.toLowerCase())) {
-    feats.push("settings");
-  } else if ((settings['tool-decloration']['tool-decloration-char'] + "quit").includes(search.value.toLowerCase())) {
-    feats.push("quit");
-  }
-  for (const pipe of pipelines) {
-    if (pipe.trigger == "call" && (settings['pipelines']['noting-char'] + pipe.name.toLowerCase()).includes(search.value.toLowerCase())) {
-      feats.push(settings['pipelines']['noting-char'] + pipe.name);
-    }
-  }
-  c = 0;
-  for (const feat of feats) {
-    let answer = new Answer("../static/images/icon.svg", feat == "" ? "No results" : `${settings['pipelines']['noting-char'] != feat[0] ? settings['tool-decloration']['tool-decloration-char'] : settings['pipelines']['noting-char']}${feat[0] == settings['pipelines']['noting-char'] ? feat.slice(1) : feat}`);
-    answerList.push(answer);
-    c++;
-    if (c == settings["answers"]["max-amount"]) break;
-  }
-  if (feats.length != 0) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-//Load extentions
-ipcRenderer.send('get-extentions');
-
-ipcRenderer.on('get-extentions', (event, files) => {
-  (async () => {
-  manifests = {};
-  for (const file of files) {
-    let data = await fetch(`../src/extentions/${file}/manifest.json`).then(response => response.json());
-    manifests[file] = data;
-  }
-  for (const file of files) {
-    let data = manifests[file];
-    if (data.settings.active) {
-      let code = await fetch(`../src/extentions/${file}/${data.file}`).then(response => response.text());
-      eval(code); //make functions
-      let feature = eval(`(() => {
-      return {
-        "RunFunction": ${data.RunFunction},
-        "CheckFunction": ${data.CheckFunction},
-        "copyFunction": ${data.copyFunction}
-      }  
-    })();`);
-      if (settings['extensions']['defult-extentions'].includes(data.name)) {
-        features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, true));
-      } else {
-        features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, false));
-      }
-    }
-  }
-})();
-});
 (async () => {
-  pipelines = await fetch("../src/pipelines/piplines.json").then(response => response.json());
+  state.pipelines = await fetch("../src/pipelines/piplines.json").then(response => response.json());
 })();
-function getPipeline(name) {
-  for (const pipeline of pipelines) {
-    if (pipeline.name === name) {
-      return pipeline;
-    }
-  }
-  return null;
-}
-class Pipeline {
-  constructor (pipeline) {
-    this.name = pipeline.name;
-    this.input = pipeline.input;
-    this.output = pipeline.output;
-    this.instructions = pipeline.steps;
-  }
-  resolveInput() {
-    if (this.input === "clipboard") {
-      return navigator.clipboard.readText();
-    }
-    if (this.input === "search") {
-      return getSearch().value;
-    }
-    if (this.input === "static") {
-      return getSearch().value;
-    }
-    throw new Error("Invalid input");
-  }
-  Output(value = this.lastOutput) {
-    if (value === undefined || value === null) return;
-
-    switch (this.output) {
-      case "clipboard":
-        navigator.clipboard.writeText(value);
-        break;
-      case "answer":
-        let answer = new Answer("../static/images/icon.svg", value);
-        answerList.push(answer);
-        break;
-      case "search":
-        getSearch().value = value;
-        break;
-      case "null":
-        break;
-      default:
-        throw new Error("Invalid output");
-    }
-  }
-  runInstructions() {
-
-  }
-  async run() {
-    const input = await this.resolveInput();
-    this.outputs = { input };
-    this.lastOutput = input;
-    let emitted = false;
-
-    for (const instruction of this.instructions) {
-      const X = [];
-      for (const instructionInput of instruction.inputs) {
-        if (instructionInput.step !== undefined) {
-          X.push(this.outputs[instructionInput.step]);
-        } else {
-          X.push(instructionInput);
-        }
-      }
-
-      if (instruction.action === "join") {
-        this.outputs[instruction.id] = X.join("");
-        this.lastOutput = this.outputs[instruction.id];
-      } else if (instruction.action === "bash") {
-        const commandText = typeof X[0] === 'string' ? X[0] : String(X[0] ?? '');
-        const normalizedCommand = commandText.trim().replace(/^\$\s*/, '');
-        const bashOutput = await ipcRenderer.invoke('run-bash', normalizedCommand);
-        this.outputs[instruction.id] = bashOutput;
-        this.lastOutput = this.outputs[instruction.id];
-      } else if (instruction.action === "output") {
-        this.outputs[instruction.id] = X[0];
-        this.lastOutput = this.outputs[instruction.id];
-        this.Output(this.lastOutput);
-        emitted = true;
-      } else {
-        let fakeOutput = new PipelineAnswer("../static/images/icon.svg", "");
-        let fakeSearch = new PipelineSearch(X[0]);
-        if (isAsync(runFunctions[features.indexOf(instruction.action)])) {
-          await runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
-        } else {
-          runFunctions[features.indexOf(instruction.action)]("a", fakeOutput, fakeSearch);
-        }
-
-        const featureOutput = fakeOutput.getText();
-        const fallbackValue = typeof X[0] === 'string' ? X[0] : '';
-        const resolvedOutput = featureOutput && !/^(Loading\.\.\.|No results|Press enter to open)$/.test(featureOutput)
-          ? featureOutput
-          : fallbackValue;
-
-        this.outputs[instruction.id] = resolvedOutput;
-        this.lastOutput = this.outputs[instruction.id];
-      }
-    }
-
-    if (!emitted) {
-      this.Output(this.lastOutput);
-    }
-  }
-}
-function clearAnswers() {
-  for (let i = 0; i < answerList.length; i++) {
-    answerList[i].destroy();
-  }
-  answerList = [];
-  const results = document.getElementById('results');
-  for (const child of results.children) {
-    results.removeChild(child);
-  }
-}
-function listExtentions() {
-  for (var i = 0; i < features.length || i < 7; i++) {
-    answer = new Answer("../static/images/icon.svg", settings["tool-decloration"]["tool-decloration-char"] + features[i].getName(), true);
-    answerList.push(answer);
-  }
-}
 
 ipcRenderer.on('updateModal', (event, updateObj) => {
   const el = document.getElementById('update-status');
