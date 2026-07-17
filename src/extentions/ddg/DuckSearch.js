@@ -25,6 +25,10 @@ function RunDGG(key, output, search) {
       ipcRenderer.send('open-url', url);
     return;
   }
+  if (search.getQuery().length < 3) {
+    output.destroy();
+    return;
+  }
   output.updateImage("extentions/ddg/DDG.svg");
   fetchAsyncDDG(search.getQuery().replaceAll(" ", "+")).then(data => {
     output.updateImage("extentions/ddg/DDG.svg");
