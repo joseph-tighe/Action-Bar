@@ -75,8 +75,8 @@ async function openExtensionStore() {
     contentBody.appendChild(Input);
     const breaker = document.createElement('br');
     contentBody.appendChild(breaker);
-    let recommendedExtentions = ["joseph-tighe/colorPicker", "joseph-tighe/github-action-bar-extension"];
-    let commitHashes = ["48ec3ba585b22b4ff7ca32490203fff2f07d7e52", "c05a320097ea207050dd845a3fe71f4ffd7a8e59"];
+    let recommendedExtentions = ["joseph-tighe/colorPicker", "joseph-tighe/github-action-bar-extension", "joseph-tighe/youtube-music-extention-action-bar"];
+    let commitHashes = ["48ec3ba585b22b4ff7ca32490203fff2f07d7e52", "c05a320097ea207050dd845a3fe71f4ffd7a8e59", "200517dbc0ef7096cf90cf467517efc8c4560347"];
     for (const extention of recommendedExtentions) {
       commitExists = (await fetch(`https://github.com/${extention}/commit/${commitHashes[recommendedExtentions.indexOf(extention)]}`)).status === 200;
       if (!commitExists) {
