@@ -77,9 +77,10 @@ state.ipcRenderer.on('get-extentions', (event, files) => {
       } else {
         state.features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, false));
       }
-      state.runFunctions.push(feature.RunFunction);
     }
   }
+  //move open to front
+  state.features.sort((a, b) => a.name == "open" ? -1 : b.name == "open" ? 1 : 0);
 })();
 });
 

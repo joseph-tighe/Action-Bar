@@ -198,7 +198,7 @@ ipcMain.on('get-extentions', (event) => {
   event.reply('get-extentions', fileList);
 });
 
-function downloadExtensionZip(git_repo) {
+function downloadExtensionZip(git_repo, commitHash) {
   const URL = `https://github.com/${git_repo}/archive/${commitHash}.zip`;
   console.log(URL);
   const name = git_repo.split('/').pop();
@@ -226,8 +226,8 @@ function extractZip(file, dest) {
   zip.extractAllTo(dest, true);
 }
 
-ipcMain.on('download-extention', async (event, git_repo) => {
-  downloadExtensionZip(git_repo);
+ipcMain.on('download-extention', async (event, git_repo, commitHash) => {
+  downloadExtensionZip(git_repo, commitHash);
 }); 
 app.whenReady().then(() => {
   setTimeout(() => {

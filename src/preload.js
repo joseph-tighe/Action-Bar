@@ -168,6 +168,9 @@ window.addEventListener('DOMContentLoaded', () => {
     state.activeFeatures = []
     clearAnswers();
     let search = state.getSearch();
+    if (search.value == "") {
+      return;
+    }
     if (e.key && !(e.key == "Enter" || e.key == "Tab" || e.key == "Escape" || e.key == "ArrowUp" || e.key == "ArrowDown" || search.value == "?")) {
       state.ResponseId++;
       callActionWithAutocomplete(e);
@@ -203,6 +206,17 @@ window.addEventListener('DOMContentLoaded', () => {
           placeholderIndex = (placeholderIndex + 1) % placeholders.length;
         }
       }, 6000);
+    }
+  }, 100);
+  setInterval(() => {
+    let results = document.getElementsByClassName("resultWrapper");
+    if (results.length > 0) {
+      for (let index = 0; index < results.length; index++) {
+        if (results[index].classList.contains("selector")) {
+          return;
+        }
+      }
+      results[0].classList.add("selector");
     }
   }, 100);
 });
