@@ -24,7 +24,7 @@ class Answer {
     this.resultEl.appendChild(this.img);
     let Index = document.getElementsByClassName('copy').length - 1;
     document.getElementsByClassName('copy')[Index].addEventListener('click', (e) => {
-      if (state.activeFeatures[Index].copyFunction != undefined || state.activeFeatures[Index].copyFunction != null) {
+      if (state.activeFeatures[Index].copyFunction != undefined && state.activeFeatures[Index].copyFunction != null) {
         state.activeFeatures[Index].copyFunction(document.getElementsByClassName('result')[Index].textContent);
       } else {
         var x = document.getElementsByClassName('result')[Index].textContent;
