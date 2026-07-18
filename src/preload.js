@@ -41,8 +41,8 @@ function autocompleteEnter(answer) {
 }
 
 function listExtentions() {
-  for (var i = 0; i < state.features.length || i < 7; i++) {
-    let answer = new Answer("../static/images/icon.svg", state.settings["tool-decloration"]["tool-decloration-char"] + state.features[i].getName(), true);
+  for (var i = 0; i < state.features.length; i++) {
+    let answer = new Answer("../static/images/icon.svg", state.settings["tool-decloration"]["tool-decloration-char"] + state.features[i].getName() + "    -    " + state.features[i].getDescription(), true);
     state.answerList.push(answer);
   }
 }

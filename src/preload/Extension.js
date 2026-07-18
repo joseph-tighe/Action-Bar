@@ -1,7 +1,7 @@
 const state = require('./state');
 
 class Extention {
-  constructor(name, runFunction, checkFunction=null, copyFunction=null, isDefualt=false) {
+  constructor(name, description, runFunction, checkFunction, copyFunction, isDefualt) {
     this.name = name
     this.handler = runFunction
     this.checkFunction = checkFunction
@@ -12,6 +12,10 @@ class Extention {
         navigator.clipboard.writeText(text);
       }
     }
+    this.description = description;
+  }
+  getDescription() {
+    return this.description;
   }
   getName() {
     return this.name;
@@ -54,7 +58,7 @@ function initExtentions() {
 
 state.ipcRenderer.on('get-extentions', (event, files) => {
   (async () => {
-  manifests = {};
+  var manifests = {};
   for (const file of files) {
     let data = await fetch(`../src/extentions/${file}/manifest.json`).then(response => response.json());
     manifests[file] = data;
@@ -73,9 +77,9 @@ state.ipcRenderer.on('get-extentions', (event, files) => {
       }
     })();`);
       if (state.settings['extensions']['defult-extentions'].includes(data.name)) {
-        state.features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, true));
+        state.features.push(new Extention(data.name, manifests[file].metadata.description, feature.RunFunction, feature.CheckFunction, feature.copyFunction, true));
       } else {
-        state.features.push(new Extention(data.name, feature.RunFunction, feature.CheckFunction, feature.copyFunction, false));
+        state.features.push(new Extention(data.name, manifests[file].metadata.description, feature.RunFunction, feature.CheckFunction, feature.copyFunction, false));
       }
     }
   }
