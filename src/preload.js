@@ -65,7 +65,7 @@ function callAction(e) {
       toCall.push(state.features[i]);
     }
   }
-  priority = {"Explicit":0, "Checks Passed":1, "Default":2, "false":3};
+  let priority = {"Explicit":0, "Checks Passed":1, "Default":2, "false":3};
   toCall.sort((a, b) => priority[a.howCall(search)] - priority[b.howCall(search)]);
   for (let i = 0; i < toCall.length; i++) {
     state.activeFeatures.push(toCall[i]);
