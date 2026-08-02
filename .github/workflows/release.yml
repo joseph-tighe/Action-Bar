@@ -9,7 +9,7 @@ jobs:
   release:
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -25,8 +25,8 @@ jobs:
       - run: npm run dist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - uses: actions/upload-artifact@v4
         with:
-          name: action-bar-windows-x64
+          name: action-bar-${{ matrix.os }}
           path: dist/*

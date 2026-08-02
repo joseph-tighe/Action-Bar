@@ -85,6 +85,10 @@ To add a new pipeline you need to add a new object to the array.
  > > inputs: An array of inputs.
 > > > step: The step id to use, or `"input"` to use the pipeline's input source.
 
+> Note: `bash` steps run with `cmd.exe` on Windows and `/bin/sh` on Linux, so shell commands in
+> pipelines must be platform-aware. The built-in `get-hash` example uses `sha256sum` (Linux/Unix).
+> On Windows, replace it with `certutil -hashfile "<file>" SHA256`.
+
 # Examples
 ### join
 ```json

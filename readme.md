@@ -12,6 +12,29 @@ To open the application run the setup.exe file. Windows may flag it as unsafe, i
 In order to edit settings type `@settings` in the search bar and press enter.
 
 To call a specific extension type `@ + The extension name` and press enter.
+## Linux
+This app is also built for Linux (AppImage and deb). Auto-updates only work when running from the AppImage.
+
+### AppImage
+1. Download `action-bar-*.AppImage` from the [releases](https://github.com/joseph-tighe/action-bar/releases) page.
+2. Make it executable and run it:
+   ```
+   $chmod +x Action-Bar-*.AppImage
+   $./Action-Bar-*.AppImage
+   ```
+3. Press `Alt + Z` to open the search bar.
+
+### Debian / Ubuntu (deb)
+1. Download `action-bar-*.deb` from the [releases](https://github.com/joseph-tighe/action-bar/releases) page.
+2. Install it:
+   ```
+   $sudo dpkg -i action-bar-*.deb
+   ```
+3. Launch **Action Bar** from your applications menu and press `Alt + Z`.
+
+> Note: deb installs do not auto-update. Use the AppImage if you want automatic updates.
+> "Start on boot" works on Linux by installing an autostart entry in `~/.config/autostart/`.
+
 ## Features
 - Quickly open apps and files
 - Use any extension

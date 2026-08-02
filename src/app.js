@@ -1,5 +1,6 @@
 const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, Menu } = require('electron/main')
 const path = require('node:path')
+const os = require('node:os')
 const fs = require('fs');
 const { exec } = require('child_process');
 const https = require('https');
@@ -14,16 +15,46 @@ app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
 
+function getWindowIcon() {
+  return path.join(__dirname, "../../static/images/icon." + (process.platform === 'linux' ? 'png' : 'ico'));
+}
+
+function setupAutostart() {
+  const enabled = settings['window']['start on boot'];
+  if (process.platform !== 'linux') {
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      path: app.getPath('exe'),
+      openAsHidden: true
+    });
+    return;
+  }
+  const autostartDir = path.join(os.homedir(), '.config', 'autostart');
+  const desktopEntry = path.join(autostartDir, 'action-bar.desktop');
+  if (enabled) {
+    fs.mkdirSync(autostartDir, { recursive: true });
+    const execPath = app.getPath('exe');
+    const content = [
+      '[Desktop Entry]',
+      'Type=Application',
+      'Name=Action Bar',
+      'Comment=Launches apps and quick search',
+      `Exec=${execPath}`,
+      'Terminal=false',
+      'X-GNOME-Autostart-enabled=true',
+      ''
+    ].join('\n');
+    fs.writeFileSync(desktopEntry, content);
+  } else if (fs.existsSync(desktopEntry)) {
+    fs.unlinkSync(desktopEntry);
+  }
+}
+
 function createWindow() {
-  app.setLoginItemSettings({
-    openAtLogin: settings['window']['start on boot'],
-    path: app.getPath('exe'),
-    openAsHidden: true
-  });
   const win = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
-    icon: path.join(__dirname, "../../static/images/icon.ico"), // Windows
+    icon: getWindowIcon(),
     transparent: true,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11
@@ -42,6 +73,7 @@ function createWindow() {
 mainWindow = null;
 app.whenReady().then(() => {
   console.log(__dirname); 
+  setupAutostart();
   tray = new Tray(path.join(__dirname, '../../static/images/icon.png'));
   tray.setToolTip('Action Bar');
   tray.on('click', () => {
@@ -150,7 +182,7 @@ ipcMain.on('open-settings', (event) => {
   settingsWindow = new BrowserWindow({
     width: settings['window']['width'],
     height: settings['window']['height'],
-    icon: path.join(__dirname, "../../static/images/icon.ico"),
+    icon: getWindowIcon(),
     transparent: false,
     //vibrancy: 'fullscreen-ui',    // on MacOS
     //backgroundMaterial: 'acrylic', // on Windows 11

@@ -1,12 +1,153 @@
 const path = require('node:path');
 const fs = require('fs');
-const { exec } = require('child_process');
+const os = require('node:os');
+const { exec, execSync, spawn } = require('child_process');
 const { app } = require('electron/main');
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
 
 var packageCache = null;
 var iconCache = new Map();
+
+function getHomeDir() {
+  return process.env.USERPROFILE || process.env.HOME || os.homedir() || '';
+}
+
+function getUserDir(name) {
+  if (process.platform === 'win32') return null;
+  try {
+    const out = execSync(`xdg-user-dir ${name}`, { encoding: 'utf8', timeout: 2000 }).trim();
+    if (out && fs.existsSync(out)) return out;
+  } catch {}
+  return null;
+}
+
+function buildSearchDirs() {
+  const home = getHomeDir();
+  const labels = { desktop: 'Desktop', documents: 'Documents', downloads: 'Downloads', pictures: 'Pictures', music: 'Music', videos: 'Videos' };
+  const dirs = [];
+  for (const [key, label] of Object.entries(labels)) {
+    if (!settings['search-files']['starting-dirs'][key]) continue;
+    let dir = null;
+    if (process.platform === 'win32') {
+      dir = path.join(home, label);
+    } else {
+      dir = getUserDir(key) || path.join(home, label);
+    }
+    if (dir) dirs.push(dir);
+  }
+  return dirs;
+}
+
+function getLinuxDesktopDirs() {
+  const home = getHomeDir();
+  const dirs = [];
+  const dataHome = process.env.XDG_DATA_HOME || path.join(home, '.local', 'share');
+  dirs.push(path.join(dataHome, 'applications'));
+  const dataDirs = (process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share').split(':');
+  for (const d of dataDirs) {
+    if (d) dirs.push(path.join(d, 'applications'));
+  }
+  return [...new Set(dirs.map(d => path.resolve(d)))];
+}
+
+function walkDesktopFiles(dir, out) {
+  let entries;
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+  for (const e of entries) {
+    const full = path.join(dir, e.name);
+    if (e.isDirectory()) walkDesktopFiles(full, out);
+    else if (e.isFile() && e.name.endsWith('.desktop')) out.push(full);
+  }
+}
+
+function parseDesktopFile(filePath) {
+  let content;
+  try { content = fs.readFileSync(filePath, 'utf8'); } catch { return null; }
+  const entry = {};
+  let inDesktopEntry = false;
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (line.startsWith('[') && line.endsWith(']')) {
+      inDesktopEntry = line.slice(1, -1) === 'Desktop Entry';
+      continue;
+    }
+    if (!inDesktopEntry || !line || line.startsWith('#')) continue;
+    const eq = line.indexOf('=');
+    if (eq === -1) continue;
+    const key = line.slice(0, eq).trim();
+    if (key.includes('[')) continue;
+    entry[key] = line.slice(eq + 1).trim();
+  }
+  if (entry.Type !== 'Application') return null;
+  if (entry.Hidden === 'true' || entry.NoDisplay === 'true') return null;
+  if (!entry.Name || !entry.Exec) return null;
+  return { name: entry.Name, exec: entry.Exec, icon: entry.Icon || '' };
+}
+
+function getLinuxApps() {
+  const seen = new Set();
+  for (const dir of getLinuxDesktopDirs()) {
+    if (!fs.existsSync(dir)) continue;
+    const files = [];
+    walkDesktopFiles(dir, files);
+    for (const f of files) {
+      const entry = parseDesktopFile(f);
+      if (!entry) continue;
+      if (seen.has(entry.name)) continue;
+      seen.add(entry.name);
+      appList.push({ name: entry.name, appId: '', type: 'linux', targetPath: entry.exec, iconPath: entry.icon, desktopPath: f });
+    }
+  }
+}
+
+function resolveDesktopIcon(icon) {
+  if (!icon) return null;
+  const home = getHomeDir();
+  if (icon.startsWith('/')) {
+    return fs.existsSync(icon) ? icon : null;
+  }
+  const baseDirs = [
+    path.join(home, '.local', 'share', 'icons'),
+    path.join(home, '.icons'),
+    '/usr/local/share/icons',
+    '/usr/share/icons',
+    '/usr/share/pixmaps'
+  ];
+  const sizes = ['256x256', '128x128', '64x64', '48x48', '32x32', '24x24', 'scalable'];
+  const rels = [];
+  for (const size of sizes) {
+    rels.push(path.join('hicolor', size, 'apps'));
+    rels.push(path.join('Adwaita', size, 'apps'));
+    rels.push(path.join('breeze', size, 'apps'));
+    rels.push(path.join('Papirus', size, 'apps'));
+  }
+  const exts = ['png', 'svg', 'xpm'];
+  for (const dir of baseDirs) {
+    for (const rel of rels) {
+      for (const ext of exts) {
+        const full = path.join(dir, rel, `${icon}.${ext}`);
+        if (fs.existsSync(full)) return full;
+      }
+    }
+    for (const ext of exts) {
+      const full = path.join(dir, `${icon}.${ext}`);
+      if (fs.existsSync(full)) return full;
+    }
+  }
+  return null;
+}
+
+function launchLinuxApp(appObj) {
+  const cmd = (appObj.targetPath || '').replace(/%(u|U|f|F|i|c|k)/g, '').trim();
+  let child;
+  if (cmd) {
+    child = exec(cmd, { detached: true, stdio: 'ignore' });
+  } else if (appObj.desktopPath) {
+    child = exec(`xdg-open "${appObj.desktopPath}"`, { detached: true, stdio: 'ignore' });
+  }
+  if (child) child.unref();
+}
 
 function levenshteinOptimized(a, b) {
   if (a === b) return 0;
@@ -116,6 +257,26 @@ async function getAppIcon(appObj) {
                 }
             }
         }
+    } else if (appObj.type === 'linux') {
+        const iconPath = resolveDesktopIcon(appObj.iconPath);
+        if (iconPath) {
+            try {
+                const buf = fs.readFileSync(iconPath);
+                const ext = path.extname(iconPath).slice(1).toLowerCase();
+                iconResult = `data:image/${ext === 'svg' ? 'svg+xml' : ext};base64,${buf.toString('base64')}`;
+            } catch (e) {
+                console.error('Linux icon read error:', e);
+            }
+        }
+        if (!iconResult && appObj.targetPath) {
+            const execPath = appObj.targetPath.replace(/%(u|U|f|F|i|c|k)/g, '').trim().split(/\s+/)[0].replace(/["']/g, '');
+            try {
+                const nativeImage = await app.getFileIcon(execPath, { size: 'small' });
+                iconResult = nativeImage.toDataURL();
+            } catch (e) {
+                console.error('Linux icon extract error:', e);
+            }
+        }
     } else if (appObj.type === 'win32') {
         let target = appObj.iconPath || appObj.targetPath;
         if (!target && appObj.appId) {
@@ -143,6 +304,11 @@ async function getAppIcon(appObj) {
 
 var appList = [];
 function getApps() {
+  if (process.platform === 'linux') {
+    getLinuxApps();
+    return;
+  }
+  if (process.platform !== 'win32') return;
   const psScript = `$apps=@();$dirs=@([Environment]::GetFolderPath("CommonStartMenu"),[Environment]::GetFolderPath("StartMenu"));foreach($dir in $dirs){if(Test-Path $dir){Get-ChildItem $dir -Recurse -Filter *.lnk -ErrorAction SilentlyContinue|%{$n=[IO.Path]::GetFileNameWithoutExtension($_.Name);$t="";$i="";try{$s=New-Object -ComObject WScript.Shell;$c=$s.CreateShortcut($_.FullName);$t=$c.TargetPath;$i=$c.IconLocation}catch{};if($n){$apps+=[PSCustomObject]@{Name=$n;TargetPath=$t;IconLocation=$i}}}}};$apps|ConvertTo-Json -Compress`;
   const encoded = Buffer.from(psScript, 'utf16le').toString('base64');
 
@@ -189,14 +355,7 @@ console.log("valid apps found\nsearching for files...");
 
 const filesForSearch = [];
 const filesHash = {};
-var initDirs = [
-  settings['search-files']['starting-dirs']['desktop'] ? path.join(process.env.USERPROFILE, 'Desktop') : null,
-  settings['search-files']['starting-dirs']['documents'] ? path.join(process.env.USERPROFILE, 'Documents') : null,
-  settings['search-files']['starting-dirs']['downloads'] ? path.join(process.env.USERPROFILE, 'Downloads') : null,
-  settings['search-files']['starting-dirs']['pictures'] ? path.join(process.env.USERPROFILE, 'Pictures') : null,
-  settings['search-files']['starting-dirs']['music'] ? path.join(process.env.USERPROFILE, 'Music') : null,
-  settings['search-files']['starting-dirs']['videos'] ? path.join(process.env.USERPROFILE, 'Videos') : null,
-];
+var initDirs = buildSearchDirs();
 function getFiles() {
   for (const dir of initDirs) {
     if (dir) {
@@ -280,17 +439,15 @@ function findBestMatchFiles(query, candidates) {
 }
 async function resolvePathForQuery(query, shouldOpen) {
   try {
-    if (process.platform !== 'win32') {
-      return { ok: false, file: null, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
-    }
-
     const appNames = appList.map(app => app.name);
     let closest = findBestMatch(query, appNames);
     if (closest && closest.score > 0.5) {
       const closestApp = appList[closest.index];
       if (shouldOpen) {
         console.log(closestApp.appId, closestApp.name);
-        if (closestApp.type === 'win32' && closestApp.targetPath) {
+        if (closestApp.type === 'linux') {
+          launchLinuxApp(closestApp);
+        } else if (closestApp.type === 'win32' && closestApp.targetPath) {
           exec(`start "" "${closestApp.targetPath}"`);
         } else {
           exec(`explorer.exe shell:AppsFolder\\${closestApp.appId}`);
@@ -307,7 +464,12 @@ async function resolvePathForQuery(query, shouldOpen) {
 
     const filePath = filesHash[closest.best];
     if (shouldOpen) {
-      exec(`start "" "${filePath}"`);
+      if (process.platform === 'linux') {
+        const child = spawn('xdg-open', [filePath], { detached: true, stdio: 'ignore' });
+        child.unref();
+      } else {
+        exec(`start "" "${filePath}"`);
+      }
     }
     return { ok: true, file: filePath, action: shouldOpen ? 'Open' : 'Found', type: 'file' };
   } catch (err) {
