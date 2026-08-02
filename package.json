@@ -7,7 +7,7 @@
     "dist": "electron-builder",
     "test-build": "electron-builder --publish never",
     "start": "electron .",
-    "test": "echo \"TODO: Add Tests\" && exit 1"
+    "test": "node --test \"test/*.test.js\""
   },
   "build": {
     "files": [
