@@ -1,6 +1,15 @@
 const state = require('./state');
 
+/**
+ * Represents an answer in the search results
+ */
 class Answer {
+  /**
+   * Creates a new answer
+   * @param {string} imageUrl the url of the image to display
+   * @param {string} text the text to display
+   * @param {boolean} overRideLimit whether to override the max amount of answers
+   */
   constructor(imageUrl, text, overRideLimit=false) {
     this.text = text;
     let selector = false;
@@ -37,50 +46,77 @@ class Answer {
       }, 1500);
     });
   }
+  /**
+   * Sets the loading state of the answer
+   * @param {boolean} istrue whether to show the loading animation
+   */
   setLoading(istrue) {
-  if (istrue) {
-    this.resultEl.innerHTML = '';
-    this.loader = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.loader.setAttribute('class', 'loader');
-    this.loader.setAttribute('viewBox', '0 0 16 16');
-    this.loader.setAttribute('width', '20');
-    this.loader.setAttribute('height', '20');
-    this.loader.setAttribute('aria-label', 'Loading');
+    if (istrue) {
+      this.resultEl.innerHTML = '';
+      this.loader = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      this.loader.setAttribute('class', 'loader');
+      this.loader.setAttribute('viewBox', '0 0 16 16');
+      this.loader.setAttribute('width', '20');
+      this.loader.setAttribute('height', '20');
+      this.loader.setAttribute('aria-label', 'Loading');
 
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', '8');
-    circle.setAttribute('cy', '8');
-    circle.setAttribute('r', '6');
-    circle.setAttribute('fill', 'none');
-    circle.setAttribute('stroke', '#0877d1');
-    circle.setAttribute('stroke-width', '2');
-    circle.setAttribute('stroke-linecap', 'round');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', '8');
+      circle.setAttribute('cy', '8');
+      circle.setAttribute('r', '6');
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke', '#0877d1');
+      circle.setAttribute('stroke-width', '2');
+      circle.setAttribute('stroke-linecap', 'round');
 
-    this.loader.appendChild(circle);
-    this.resultEl.appendChild(this.loader);
-  } else {
-    this.resultEl.innerHTML = this.text;
+      this.loader.appendChild(circle);
+      this.resultEl.appendChild(this.loader);
+    } else {
+      this.resultEl.innerHTML = this.text;
+    }
   }
-}
+  /**
+   * Updates the text of the answer
+   * @param {string} text the new text to display
+   */
   updateText(text) {
     this.setLoading(false);
     this.text = text;
     this.resultEl.innerHTML = text;
     this.resultEl.appendChild(this.img);
   }
+  /**
+   * Updates the image of the answer
+   * @param {string} imageUrl the new image url
+   */
   updateImage(imageUrl) {
     this.imageUrl = imageUrl;
     this.img.src = imageUrl;
   }
+  /**
+   * Gets the text of the answer
+   * @returns {string} the text of the answer
+   */
   getText() {
     return this.text;
   }
+  /**
+   * Gets the image url of the answer
+   * @returns {string} the image url of the answer
+   */
   getImageUrl() {
     return this.imageUrl;
   }
+  /**
+   * Gets the wrapper element
+   * @returns {HTMLDivElement} the wrapper element
+   */
   getWrapper() {
     return this.wrapper;
   }
+  /**
+   * destroys the element and class
+   */
   destroy() {
     try {
       this.wrapper.remove();
@@ -88,9 +124,15 @@ class Answer {
       console.log(e);
     }
   }
+  /**
+   * removes the icon
+   */
   removeIcon() {
     this.resultEl.removeChild(this.img);
   }
+  /**
+   * adds back the icon (after it is removed)
+   */
   addIcon() {
     this.resultEl.appendChild(this.img);
   }

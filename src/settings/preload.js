@@ -30,14 +30,20 @@ saveBtn.addEventListener('click', () => {
 ipc.invoke('get-update-state').then(state => {
   if (state) updater(state);
 });
-
+/**
+ * used to format labels
+ * @param {string} text the original text
+ * @returns {string} formated text
+ */
 function formatLabel(text) {
   return String(text)
     .replace(/-/g, ' ')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase());
 }
-
+/**
+ * Generate and display the sidebar
+ */
 function renderSidebar() {
   sidebarList.innerHTML = '';
   Object.keys(settings).forEach(key => {
@@ -53,6 +59,9 @@ function renderSidebar() {
   extentionDownload.addEventListener('click', openExtensionStore);
   sidebarList.appendChild(extentionDownload);
 }
+/**
+ * Open the extrension store
+ */
 async function openExtensionStore() {
     // Text Input < put github repo here
     //
@@ -105,6 +114,10 @@ async function openExtensionStore() {
     }
 
 }
+/**
+ * Open the settings of a specific group
+ * @param {string} key the group name
+ */
 async function openSetting(key) {
   currentGroup = key;
   contentHeader.textContent = formatLabel(key);
@@ -142,6 +155,13 @@ async function openSetting(key) {
   }
 }
 
+/**
+ * Renders a group of settings
+ * @param {*} value the value of the group
+ * @param {*} parent the parent element to append the group to
+ * @param {*} path the path of the group in the settings object
+ * @returns 
+ */
 function renderGroup(value, parent, path) {
   if (Array.isArray(value)) {
     const card = createCard(path[path.length - 1]);
@@ -186,7 +206,11 @@ function renderGroup(value, parent, path) {
 
   renderControl(value, parent, path);
 }
-
+/**
+ * Creates a new setting card
+ * @param {string} title the title of the card
+ * @returns the created card element
+ */
 function createCard(title) {
   const card = document.createElement('section');
   card.className = 'section-card';
@@ -201,7 +225,12 @@ function createCard(title) {
   card.appendChild(body);
   return card;
 }
-
+/**
+ * Renders a control for a setting
+ * @param {*} value the value of the control
+ * @param {*} parent the parent element to append the control to
+ * @param {*} path the path of the control in the settings object
+ */
 function renderControl(value, parent, path) {
   const row = document.createElement('div');
   row.className = 'setting-row';
@@ -244,6 +273,12 @@ function renderControl(value, parent, path) {
   parent.appendChild(row);
 }
 
+/**
+ * Renders a row for a single array item with a text input and remove button.
+ * @param {*} item The array item value.
+ * @param {Element} parent The parent element to append the row to.
+ * @param {Array} path The path of the item in the settings object.
+ */
 function renderArrayItem(item, parent, path) {
   const row = document.createElement('div');
   row.className = 'array-row';
@@ -270,6 +305,13 @@ function renderArrayItem(item, parent, path) {
   parent.appendChild(row);
 }
 
+/**
+ * Renders an editable key-value row for a string map entry.
+ * @param {string} key The map entry key.
+ * @param {string} value The map entry value.
+ * @param {Element} parent The parent element to append the row to.
+ * @param {Array} path The path of the entry in the settings object.
+ */
 function renderMapEntry(key, value, parent, path) {
   const row = document.createElement('div');
   row.className = 'map-row';
@@ -313,6 +355,12 @@ function renderMapEntry(key, value, parent, path) {
   parent.appendChild(row);
 }
 
+/**
+ * Renders a string map as a card of editable key-value rows.
+ * @param {Object} value The map object.
+ * @param {Element} parent The parent element to append the card to.
+ * @param {Array} path The path of the map in the settings object.
+ */
 function renderMap(value, parent, path) {
   const card = createCard(path[path.length - 1]);
   const body = card.querySelector('.section-body');
@@ -335,6 +383,11 @@ function renderMap(value, parent, path) {
   parent.appendChild(card);
 }
 
+/**
+ * Updates the value at the given path within the settings object.
+ * @param {Array} path The path to the setting.
+ * @param {*} value The new value.
+ */
 function updateValue(path, value) {
   let target = settings;
   for (let i = 0; i < path.length - 1; i++) {
@@ -343,6 +396,11 @@ function updateValue(path, value) {
   target[path[path.length - 1]] = value;
 }
 
+/**
+ * Retrieves the value at the given path within the settings object.
+ * @param {Array} path The path to the setting.
+ * @returns {*} The value at the path.
+ */
 function getByPath(path) {
   let target = settings;
   for (const key of path) {
@@ -351,6 +409,10 @@ function getByPath(path) {
   return target;
 }
 });
+/**
+ * Updates the update button UI based on the current updater state.
+ * @param {Object} updateObj The updater state object.
+ */
 function updater(updateObj) {
   const updateBtn = document.getElementById('updateBtn');
   if (!updateBtn) return;
@@ -378,6 +440,12 @@ function updater(updateObj) {
     updateBtn.onclick = null;
   }
 }
+/**
+ * IPC listener: refreshes the update button whenever an update modal state is
+ * received.
+ * @param {Electron.IpcRendererEvent} event The IPC event.
+ * @param {Object} updateObj The updater state object.
+ */
 ipc.on('updateModal', (event, updateObj) => {
   updater(updateObj);
 });

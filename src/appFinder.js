@@ -9,10 +9,20 @@ const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/s
 var packageCache = null;
 var iconCache = new Map();
 
+/**
+ * Returns the current user's home directory.
+ * @returns {string} The home directory path, or an empty string if unknown.
+ */
 function getHomeDir() {
   return process.env.USERPROFILE || process.env.HOME || os.homedir() || '';
 }
 
+/**
+ * Resolves a standard user directory (e.g. Desktop, Downloads) via the
+ * `xdg-user-dir` command. Only used on non-Windows platforms.
+ * @param {string} name The XDG user directory key (e.g. "DESKTOP").
+ * @returns {string|null} The resolved directory path, or null if unavailable.
+ */
 function getUserDir(name) {
   if (process.platform === 'win32') return null;
   try {
@@ -22,6 +32,11 @@ function getUserDir(name) {
   return null;
 }
 
+/**
+ * Builds the list of starting directories used for file searches based on the
+ * configured XDG labels and platform.
+ * @returns {string[]} The list of search directories.
+ */
 function buildSearchDirs() {
   const home = getHomeDir();
   const labels = { desktop: 'Desktop', documents: 'Documents', downloads: 'Downloads', pictures: 'Pictures', music: 'Music', videos: 'Videos' };
@@ -39,6 +54,10 @@ function buildSearchDirs() {
   return dirs;
 }
 
+/**
+ * Returns the Linux directories that may contain `.desktop` application files.
+ * @returns {string[]} Unique, resolved application directories.
+ */
 function getLinuxDesktopDirs() {
   const home = getHomeDir();
   const dirs = [];
@@ -51,6 +70,11 @@ function getLinuxDesktopDirs() {
   return [...new Set(dirs.map(d => path.resolve(d)))];
 }
 
+/**
+ * Recursively collects all `.desktop` files under a directory into `out`.
+ * @param {string} dir The directory to walk.
+ * @param {string[]} out The array to append matching file paths to.
+ */
 function walkDesktopFiles(dir, out) {
   let entries;
   try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
@@ -61,6 +85,12 @@ function walkDesktopFiles(dir, out) {
   }
 }
 
+/**
+ * Parses a `.desktop` file, returning a summary for application entries.
+ * @param {string} filePath The path to the `.desktop` file.
+ * @returns {{name: string, exec: string, icon: string}|null} The parsed app
+ *   entry, or null if the file is not a valid visible application.
+ */
 function parseDesktopFile(filePath) {
   let content;
   try { content = fs.readFileSync(filePath, 'utf8'); } catch { return null; }
@@ -85,6 +115,10 @@ function parseDesktopFile(filePath) {
   return { name: entry.Name, exec: entry.Exec, icon: entry.Icon || '' };
 }
 
+/**
+ * Scans the Linux desktop application directories and populates `appList` with
+ * unique application entries (deduped by name).
+ */
 function getLinuxApps() {
   const seen = new Set();
   for (const dir of getLinuxDesktopDirs()) {
@@ -101,6 +135,11 @@ function getLinuxApps() {
   }
 }
 
+/**
+ * Resolves an icon name or path to an existing icon file on Linux.
+ * @param {string} icon The icon name or absolute path.
+ * @returns {string|null} The resolved icon path, or null if not found.
+ */
 function resolveDesktopIcon(icon) {
   if (!icon) return null;
   const home = getHomeDir();
@@ -138,6 +177,10 @@ function resolveDesktopIcon(icon) {
   return null;
 }
 
+/**
+ * Launches a Linux application via its target command or desktop entry.
+ * @param {Object} appObj The app entry with `targetPath` and/or `desktopPath`.
+ */
 function launchLinuxApp(appObj) {
   const cmd = (appObj.targetPath || '').replace(/%(u|U|f|F|i|c|k)/g, '').trim();
   let child;
@@ -149,6 +192,13 @@ function launchLinuxApp(appObj) {
   if (child) child.unref();
 }
 
+/**
+ * Computes the Levenshtein edit distance between two strings, optimized to
+ * use the shorter string for the array dimension.
+ * @param {string} a The first string.
+ * @param {string} b The second string.
+ * @returns {number} The edit distance.
+ */
 function levenshteinOptimized(a, b) {
   if (a === b) return 0;
   if (a.length > b.length) [a, b] = [b, a];
@@ -168,11 +218,24 @@ function levenshteinOptimized(a, b) {
   return prev[n];
 }
 
+/**
+ * Normalizes a string by removing diacritics, lower-casing, trimming, and
+ * stripping non-letter/number characters.
+ * @param {string} s The input string.
+ * @returns {string} The normalized string.
+ */
 function normalize(s) {
   return s.normalize('NFKD').replace(/\p{Diacritic}/gu, '')
     .toLowerCase().trim().replace(/[^\p{L}\p{N}\s]/gu, '');
 }
 
+/**
+ * Returns a similarity score between 0 and 1 for two strings based on their
+ * normalized Levenshtein distance.
+ * @param {string} a The first string.
+ * @param {string} b The second string.
+ * @returns {number} The similarity score.
+ */
 function similarity(a, b) {
   a = normalize(a); b = normalize(b);
   const maxLen = Math.max(a.length, b.length);
@@ -181,6 +244,13 @@ function similarity(a, b) {
   return 1 - dist / maxLen;
 }
 
+/**
+ * Finds the candidate with the highest similarity to the query.
+ * @param {string} query The query string.
+ * @param {string[]} candidates The list of candidate strings.
+ * @returns {{best: string, index: number, score: number}} The best match
+ *   candidate, its index, and its similarity score.
+ */
 function findBestMatch(query, candidates) {
   let bestIdx = -1, bestScore = -1;
   for (let i = 0; i < candidates.length; i++) {
@@ -194,6 +264,10 @@ function findBestMatch(query, candidates) {
   return { best: candidates[bestIdx], index: bestIdx, score: bestScore };
 }
 
+/**
+ * Loads and caches the Windows AppX packages (name and install location).
+ * @returns {Promise<Array>} The resolved list of packages.
+ */
 function loadPackages() {
     return new Promise((resolve, reject) => {
         if (packageCache) return resolve(packageCache);
@@ -214,6 +288,12 @@ function loadPackages() {
     });
 }
 
+/**
+ * Resolves a Windows app user model ID to its executable path via the Shell
+ * COM interface.
+ * @param {string} appId The application user model ID.
+ * @returns {Promise<string|null>} The resolved path, or null on failure.
+ */
 function resolveAppIdToPath(appId) {
     return new Promise((resolve) => {
         const ps = `try{$s=New-Object -ComObject Shell.Application;$f=$s.NameSpace("shell:AppsFolder");$i=$f.ParseName("${appId}");if($i){$i.Path}else{""}}catch{""}`;
@@ -226,6 +306,12 @@ function resolveAppIdToPath(appId) {
     });
 }
 
+/**
+ * Resolves and caches an icon (as a data URL) for a given app entry. Handles
+ * UWP manifests, Linux desktop icons, and Windows executables.
+ * @param {Object} appObj The app entry to fetch an icon for.
+ * @returns {Promise<string|null>} The icon data URL, or null if not found.
+ */
 async function getAppIcon(appObj) {
     if (!appObj) return null;
     if (iconCache.has(appObj.name)) return iconCache.get(appObj.name);
@@ -303,6 +389,10 @@ async function getAppIcon(appObj) {
 }
 
 var appList = [];
+/**
+ * Scans the system for installed applications and populates `appList`. Uses
+ * desktop entries on Linux and Start Menu shortcuts + Store apps on Windows.
+ */
 function getApps() {
   if (process.platform === 'linux') {
     getLinuxApps();
@@ -356,6 +446,10 @@ console.log("valid apps found\nsearching for files...");
 const filesForSearch = [];
 const filesHash = {};
 var initDirs = buildSearchDirs();
+/**
+ * Populates the file search index by scanning the configured starting
+ * directories up to the configured initial depth.
+ */
 function getFiles() {
   for (const dir of initDirs) {
     if (dir) {
@@ -363,6 +457,11 @@ function getFiles() {
     }
   }
 }
+/**
+ * Checks whether the current process can write to the given path.
+ * @param {string} filePath The path to check.
+ * @returns {boolean} True if writable.
+ */
 function checkPermissionsSync(filePath) {
   try {
     fs.accessSync(filePath, fs.constants.W_OK);
@@ -372,6 +471,14 @@ function checkPermissionsSync(filePath) {
   }
 }
 
+/**
+ * Recursively indexes files and directories under `dir` up to `maxDepth`,
+ * honoring configured invalid directories, invalid file extensions, and
+ * permissions.
+ * @param {string} dir The directory to scan.
+ * @param {number} depth The current recursion depth.
+ * @param {number} maxDepth The maximum depth to descend into.
+ */
 async function getFilesFor(dir, depth, maxDepth) {
   if (depth > maxDepth) return;
   depth++;
@@ -397,6 +504,13 @@ async function getFilesFor(dir, depth, maxDepth) {
   }
 }
 getFiles();
+/**
+ * Finds the best file match for a query, handling path-like queries by
+ * resolving folder segments and expanding the search index as needed.
+ * @param {string} query The search query (may contain path separators).
+ * @param {string[]} candidates The list of candidate file names.
+ * @returns {Object} The best match result.
+ */
 function findBestMatchFiles(query, candidates) {
   var cands = candidates;
   query = query.replaceAll("\\", "/");
@@ -437,6 +551,14 @@ function findBestMatchFiles(query, candidates) {
     return findBestMatch(query, candidates);
   }
 }
+/**
+ * Resolves a search query to either an installed app or an indexed file,
+ * optionally opening it. Returns a structured result for the caller.
+ * @param {string} query The search query.
+ * @param {boolean} shouldOpen Whether to launch/open the resolved target.
+ * @returns {Promise<{ok: boolean, file: (string|null), action: string, type: string, icon?: *}>}
+ *   The resolution result.
+ */
 async function resolvePathForQuery(query, shouldOpen) {
   try {
     const appNames = appList.map(app => app.name);

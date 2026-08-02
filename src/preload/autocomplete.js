@@ -1,6 +1,9 @@
 const state = require('./state');
 const { Answer } = require('./Answer');
-
+/**
+ * autocompletes the text
+ * @param {String} pressedKey the last pressed key
+ */
 function autocomplete(pressedKey) {
   const search = state.getSearch();
   var feats = [];

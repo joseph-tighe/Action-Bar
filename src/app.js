@@ -15,10 +15,19 @@ app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
 const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
 
+/**
+ * Returns the path to the window/tray/taskbar icon for the current platform.
+ * @returns {string} The absolute path to the icon file.
+ */
 function getWindowIcon() {
   return path.join(__dirname, "../../static/images/icon." + (process.platform === 'linux' ? 'png' : 'ico'));
 }
 
+/**
+ * Configures the app to launch at login based on settings. Uses the login
+ * item mechanism on non-Linux platforms and a `.desktop` autostart entry on
+ * Linux.
+ */
 function setupAutostart() {
   const enabled = settings['window']['start on boot'];
   if (process.platform !== 'linux') {
@@ -50,6 +59,11 @@ function setupAutostart() {
   }
 }
 
+/**
+ * Creates the main application browser window as a frameless, transparent
+ * window loading the main UI.
+ * @returns {BrowserWindow} The created window.
+ */
 function createWindow() {
   const win = new BrowserWindow({
     width: settings['window']['width'],
@@ -117,6 +131,10 @@ app.on('window-all-closed', () => {
 
   }
 })
+/**
+ * Toggles the main window's visibility. When showing, optionally repositions
+ * the window to the mouse/cursor screen and centered per summon settings.
+ */
 function toggleWindowVisibility() {
   if (mainWindow.isVisible()) {
     mainWindow.hide();
@@ -133,6 +151,11 @@ function toggleWindowVisibility() {
   }
 }
 
+/**
+ * Returns the display that currently contains the mouse cursor, falling back
+ * to the primary display if none matches.
+ * @returns {Electron.Display} The display under the cursor.
+ */
 function getScreen() {
   for (const scr of screen.getAllDisplays()) {
     if (scr.bounds.x <= screen.getCursorScreenPoint().x && scr.bounds.y <= screen.getCursorScreenPoint().y && scr.bounds.x + scr.bounds.width >= screen.getCursorScreenPoint().x && scr.bounds.y + scr.bounds.height >= screen.getCursorScreenPoint().y) {
@@ -141,12 +164,29 @@ function getScreen() {
   }
   return screen.getPrimaryDisplay();
 }
+/**
+ * IPC handler: shows a native notification with the given title and body.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {{title: string, body: string}} args The notification content.
+ */
 ipcMain.on('show-notification', (event, { title, body }) => {
   new Notification({ title, body }).show();
 });
+/**
+ * IPC handler: opens the given URL in the system's default browser.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} url The URL to open.
+ */
 ipcMain.on('open-url', (event, url) => {
   shell.openExternal(url);
 });
+/**
+ * IPC handler: runs a shell command and resolves with its trimmed stdout
+ * output (resolves with stderr/error message on failure).
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} command The command to run.
+ * @returns {Promise<string>} The trimmed command output.
+ */
 ipcMain.handle('run-bash', async (event, command) => {
   return new Promise((resolve, reject) => {
     const normalizedCommand = String(command || '').trim().replace(/^\$\s*/, '');
@@ -160,23 +200,49 @@ ipcMain.handle('run-bash', async (event, command) => {
   });
 });
 
+/**
+ * IPC handler: resolves the path for a given app/file search query with the
+ * folder-search option disabled, emits an "open-file" event to the sender.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} query The search query.
+ * @returns {Promise<*>} The resolved path result.
+ */
 ipcMain.handle('search-apps/files', async (event, query) => {
   const result = await resolvePathForQuery(query, false);
   event.sender.send('open-file', result);
   return result;
 });
 
+/**
+ * IPC handler: resolves the path for an app/file search with the folder-search
+ * option enabled, emits an "open-file" event to the sender.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} query The search query.
+ * @returns {Promise<*>} The resolved path result.
+ */
 ipcMain.handle('search-open-apps/files', async (event, query) => {
   const result = await resolvePathForQuery(query, true);
   event.sender.send('open-file', result);
   return result;
 });
+/**
+ * IPC handler: quits the application.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ */
 ipcMain.on('quit', () => {
   app.quit();
 });
+/**
+ * IPC handler: toggles the main window's visibility.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ */
 ipcMain.on('close-window', (event) => {
   toggleWindowVisibility();
 });
+/**
+ * IPC handler: opens the settings window as a separate framed window.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ */
 ipcMain.on('open-settings', (event) => {
   Menu.setApplicationMenu(null);
   settingsWindow = new BrowserWindow({
@@ -201,15 +267,34 @@ ipcMain.on('open-settings', (event) => {
     settingsWindow.webContents.send('focus-search');
   });
 });
+/**
+ * IPC handler: writes the updated settings to the settings file.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {Object} settings The new settings object.
+ */
 ipcMain.on('update-settings', (event, settings) => {
   fs.writeFileSync(path.join(__dirname, '../../config/settings.json'), JSON.stringify(settings, null, 4));
 });
+/**
+ * IPC handler: quits and installs a pending app update.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ */
 ipcMain.on('update-app', () => {
   updater.quitAndInstall();
 });
+/**
+ * IPC handler: returns the last known updater state.
+ * @returns {*} The updater state.
+ */
 ipcMain.handle('get-update-state', () => {
   return updater.getLastState();
 });
+/**
+ * IPC handler: persists per-extension settings into each extension's manifest.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {Object} extensionSettings A map of extension name to settings.
+ * @param {Object} dirMap A map of extension name to directory.
+ */
 ipcMain.on('update-extention-settings', (event, extensionSettings, dirMap) => {
   for (const [name, settings] of Object.entries(extensionSettings)) {
     const dir = dirMap[name];
@@ -220,6 +305,11 @@ ipcMain.on('update-extention-settings', (event, extensionSettings, dirMap) => {
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 4));
   }
 });
+/**
+ * IPC handler: lists the installed extension directories and replies to the
+ * sender.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ */
 ipcMain.on('get-extentions', (event) => {
   fileList = [];
   fs.readdirSync(path.join(__dirname, '../../src/extentions')).forEach(file => {
@@ -230,6 +320,11 @@ ipcMain.on('get-extentions', (event) => {
   event.reply('get-extentions', fileList);
 });
 
+/**
+ * Downloads and extracts an extension from a GitHub repo at the given commit.
+ * @param {string} git_repo The GitHub repository in "owner/repo" form.
+ * @param {string} commitHash The commit hash to download the archive from.
+ */
 function downloadExtensionZip(git_repo, commitHash) {
   const URL = `https://github.com/${git_repo}/archive/${commitHash}.zip`;
   console.log(URL);
@@ -253,11 +348,22 @@ function downloadExtensionZip(git_repo, commitHash) {
     }
   });
 }
+/**
+ * Extracts a ZIP archive to the given destination directory.
+ * @param {string} file The path to the ZIP file.
+ * @param {string} dest The destination directory to extract into.
+ */
 function extractZip(file, dest) {
   const zip = new AdmZip(file);
   zip.extractAllTo(dest, true);
 }
 
+/**
+ * IPC handler: triggers download and extraction of the given extension repo.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} git_repo The GitHub repository in "owner/repo" form.
+ * @param {string} commitHash The commit hash to download.
+ */
 ipcMain.on('download-extention', async (event, git_repo, commitHash) => {
   downloadExtensionZip(git_repo, commitHash);
 }); 

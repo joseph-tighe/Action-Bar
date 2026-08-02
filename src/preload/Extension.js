@@ -1,6 +1,19 @@
+const { PipelineAnswer, PipelineSearch } = require('./pipeline');
 const state = require('./state');
 
+/**
+ * A class for an extension
+ */
 class Extention {
+  /**
+   * The constructor for the extension class
+   * @param {string} name The name of the extension the user uses to call it
+   * @param {string} description A description of the extension
+   * @param {Function} runFunction The function that is called when calling your extension
+   * @param {Function | undefined | null} checkFunction The function used to check if the current conditions allow for the extension to be called
+   * @param {Function | undefined | null} copyFunction The function used to copy the answer to the users clipboard
+   * @param {boolean} isDefualt Is this extension set as a defullt extension
+   */
   constructor(name, description, runFunction, checkFunction, copyFunction, isDefualt) {
     this.name = name
     this.handler = runFunction
@@ -14,21 +27,50 @@ class Extention {
     }
     this.description = description;
   }
+  /**
+   * Get the description of the extension
+   * @returns {string} description
+   */
   getDescription() {
     return this.description;
   }
+  /**
+   * Get the name of the extension
+   * @returns {string} the name
+   */
   getName() {
     return this.name;
   }
+  /**
+   * run the extention
+   * @param {string} key The key last pressed
+   * @param {Answer|PipelineAnswer} answer The assigned answer
+   * @param {Search|PipelineSearch} search The current search
+   */
   run(key, answer, search) {
     this.handler(key, answer, search);
   }
+  /**
+   * check if it can be called
+   * @param {Search} search The current search
+   * @returns 
+   */
   check(search) {
     return this.checkFunction(search);
   }
+  /**
+   * copy it
+   * @param {string} text 
+   */
   copy(text) {
     this.copyFunction(text);
   }
+  /**
+   * try to run the extension
+   * @param {string} key the key last pressed
+   * @param {Answer|PipelineAnswer} answer The assigned answer (will be destroyed if run fails)
+   * @param {Search|PipelineSearch} search The current search
+   */
   TryRun(key, answer, search) {
     if (this.canCall(search)) {
       this.handler(key, answer, search);
@@ -36,9 +78,19 @@ class Extention {
       answer.destroy();
     }
   }
+  /**
+   * Check if the extension can be called
+   * @param {Search|PipelineSearch} search The current search
+   * @returns {boolean} whether the extension can be called
+   */
   canCall(search) {
     return this.howCall(search) != "false";
   }
+  /**
+   * Check by which method the extension can be called
+   * @param {Search|PipelineSearch} search The current search
+   * @returns {string} the method by which the extension can be called
+   */
   howCall(search) {
      if (search.getPrefix() == state.settings['tool-decloration']['tool-decloration-char'] + this.name) {
       return "Explicit"
@@ -51,7 +103,9 @@ class Extention {
     }
   }
 }
-
+/**
+ * Initializes the extentions
+ */
 function initExtentions() {
   state.ipcRenderer.send('get-extentions');
 }

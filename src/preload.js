@@ -11,15 +11,24 @@ fetch("../config/settings.json").then(response => response.json()).then(data => 
   state.settingsLoaded = true;
 });
 
+/**
+ * Quits the application
+ */
 function Quit() {
   ipcRenderer.send('quit');
 }
 
+/**
+ * Opens the settings window
+ */
 function openSetting() {
   ipcRenderer.send('open-settings');
   state.getSearch().value = "";
 }
 
+/**
+ * Clears answer list and removes all answers from the results container
+ */
 function clearAnswers() {
   for (let i = 0; i < state.answerList.length; i++) {
     state.answerList[i].destroy();
@@ -31,6 +40,10 @@ function clearAnswers() {
   }
 }
 
+/**
+ * Autocompletes the search input with the selected answer
+ * @param {Answer} answer the answer currently selected by the user
+ */
 function autocompleteEnter(answer) {
   clearAnswers();
   if (answer.getText() != "") {
@@ -40,6 +53,9 @@ function autocompleteEnter(answer) {
   callAction({key:"a"});
 }
 
+/**
+ * Lists all available extentions
+ */
 function listExtentions() {
   for (var i = 0; i < state.features.length; i++) {
     let answer = new Answer("../static/images/icon.svg", state.settings["tool-decloration"]["tool-decloration-char"] + state.features[i].getName() + "    -    " + state.features[i].getDescription(), true);
@@ -47,6 +63,11 @@ function listExtentions() {
   }
 }
 
+/**
+ * Calls the action with autocomplete functionality
+ * @param {*} e the event object
+ * @returns 
+ */
 function callActionWithAutocomplete(e) {
   if (state.getSearch().value[0] == state.settings['tool-decloration']['tool-decloration-char']) {
     didFind = autocomplete(e.key);
@@ -57,6 +78,10 @@ function callActionWithAutocomplete(e) {
   callAction(e);
 }
 
+/**
+ * call the action
+ * @param {*} e the event object
+ */
 function callAction(e) {
   let toCall = [];
   let search = new Search();
