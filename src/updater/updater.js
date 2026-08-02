@@ -80,6 +80,10 @@ autoUpdater.on("download-progress", progress => {
 });
 
 autoUpdater.on("update-downloaded", () => {
+    modalDisabled = true
+    if (modalDisabled) {
+        return
+    }
     sendToAllWindows("updateModal", {
         progress: 100,
         error: null,
@@ -90,6 +94,10 @@ autoUpdater.on("update-downloaded", () => {
 });
 
 autoUpdater.on("error", err => {
+    modalDisabled = true
+    if (modalDisabled) {
+        return
+    }
     sendToAllWindows("updateModal", {
         progress: 0,
         error: (err && err.message) || String(err || "Unknown error"),
