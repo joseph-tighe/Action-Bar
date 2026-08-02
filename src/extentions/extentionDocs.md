@@ -34,7 +34,7 @@ In your code you will include a function that will be called when the user queri
 - key: the key that was last pressed by the user
 - output: an object that will be used to output text to the user
 - search: an object that will be used to get the user's query
-In your manifest file you will specify the name of the function that will be called.
+
 ### CheckFunction:
 This property can be null, having it as null is the default value.
 If the value is null the extension will only be called when the user queries it.
