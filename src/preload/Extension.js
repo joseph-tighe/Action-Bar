@@ -20,7 +20,7 @@ class Extention {
     this.checkFunction = checkFunction
     this.copyFunction = copyFunction
     this.isDefualt = isDefualt;
-    if (this.copyFunction == null) {
+    if (this.copyFunction == null || this.copyFunction == undefined) {
       this.copyFunction = function(text) {
         navigator.clipboard.writeText(text);
       }
