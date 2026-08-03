@@ -13,21 +13,14 @@ In order to edit settings type `@settings` in the search bar and press enter.
 
 To call a specific extension type `@ + The extension name` and press enter.
 ## Linux
-This app is also built for Linux (AppImage and deb). Auto-updates only work when running from the AppImage.
+This app is also built for Linux (AppImage). Auto-updates only work when running from the AppImage.
 
 ### AppImage
 Download `action-bar-*.AppImage` from the [releases](https://github.com/joseph-tighe/action-bar/releases) page.
 
 > NOTE:
 >
-> I tested this on fedora KDE, but Alt+Z doesn't appear to work on fedora KDE or with the AppImage in general, I don't know.
-
-### Debian / Ubuntu (deb)
-Download `action-bar-*.deb` from the [releases](https://github.com/joseph-tighe/action-bar/releases) page.
-
-> Note:
->
-> This is untested, try using the AppImage instead
+> I believe Alt+Z doesn't appear to work on fedora KDE or with the AppImage in general, I don't know.
 
 ## Features
 - Quickly open apps and files
