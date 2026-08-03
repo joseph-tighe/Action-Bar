@@ -60,6 +60,10 @@ autoUpdater.on("update-available", () => {
 });
 
 autoUpdater.on("update-not-available", () => {
+    let modalDisabled = true
+    if (modalDisabled) {
+        return
+    }
     sendToAllWindows("updateModal", {
         progress: 0,
         error: null,
@@ -80,7 +84,7 @@ autoUpdater.on("download-progress", progress => {
 });
 
 autoUpdater.on("update-downloaded", () => {
-    modalDisabled = true
+    let modalDisabled = true
     if (modalDisabled) {
         return
     }
@@ -94,7 +98,7 @@ autoUpdater.on("update-downloaded", () => {
 });
 
 autoUpdater.on("error", err => {
-    modalDisabled = true
+    let modalDisabled = true
     if (modalDisabled) {
         return
     }
