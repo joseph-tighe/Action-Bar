@@ -1,8 +1,9 @@
-name: Update Version on Release
+name: Update Version and Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   update-version:
@@ -27,12 +28,48 @@ jobs:
 
       - name: Update version
         run: |
-          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          CURRENT=$(node -p "require('./package.json').version")
+          TARGET="${{ steps.version.outputs.version }}"
+          if [ "$CURRENT" = "$TARGET" ]; then
+            echo "Version already $TARGET, skipping..."
+          else
+            npm version "$TARGET" --no-git-tag-version
+          fi
 
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json package-lock.json
-          git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
-          git push origin master
+          if git diff --exit-code --quiet package.json package-lock.json; then
+            echo "No version change, skipping commit/push."
+          else
+            git add package.json package-lock.json
+            git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
+            git push origin master
+          fi
+
+  release:
+    needs: update-version
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm ci
+
+      - run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: action-bar-${{ matrix.os }}
+          path: dist/*
