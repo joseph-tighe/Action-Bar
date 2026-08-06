@@ -64,6 +64,47 @@ function listExtentions() {
 }
 
 /**
+ * update Selectors for mouse selection
+ */
+function mouseSelectionUpdate() {
+  const wrappers = document.getElementsByClassName("resultWrapper");
+  for (let wrap of wrappers) {
+    wrap.addEventListener('mouseover', (e) =>  {
+      RadioSelectorUpdate(wrap);
+    });
+    wrap.addEventListener('click', (e) =>  {
+      if (wrappers.length === 0) return true;
+      for (let i = 0; i < wrappers.length; i++) {
+        if (wrappers[i].classList.contains("selector")) {
+          if (state.activeFeatures.length === 0) {
+            autocompleteEnter(state.answerList[i]);
+          } else {
+            state.activeFeatures[i].run("Enter", state.answerList[i], new Search());
+          }
+        }
+      }
+    });
+  }
+}
+
+/**
+ * update Selector based on radio btn rules
+ * @param {HTMLElement} selector the element to be selected
+ */
+function RadioSelectorUpdate(selector) {
+  const wrappers = document.getElementsByClassName("resultWrapper");
+  for (let wrap of wrappers) {
+    if (wrap == selector) {
+      wrap.classList.add("selector");
+    } else {
+      if (wrap.classList.contains("selector")) {
+        wrap.classList.remove("selector");
+      }
+    }
+  }
+}
+
+/**
  * Calls the action with autocomplete functionality
  * @param {*} e the event object
  * @returns 
@@ -99,6 +140,7 @@ function callAction(e) {
     state.answerList.push(answer);
     toCall[i].run(e.key, answer, search);
   }
+  mouseSelectionUpdate();
   if (search.getPrefix() == state.settings['tool-decloration']['tool-decloration-char'] + "settings") {
     openSetting();
   } else if (search.getPrefix() == state.settings['tool-decloration']['tool-decloration-char'] + "quit") {
