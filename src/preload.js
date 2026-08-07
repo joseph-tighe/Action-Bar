@@ -6,8 +6,8 @@ const { Answer } = require('./preload/Answer');
 const { Pipeline } = require('./preload/pipeline');
 const { autocomplete } = require('./preload/autocomplete');
 
-fetch("../config/settings.json").then(response => response.json()).then(data => {
-  state.settings = data;
+state.ipcRenderer.invoke('get-settings').then(data => {
+  state.settings = data || {};
   state.settingsLoaded = true;
 });
 
@@ -289,7 +289,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 (async () => {
-  state.pipelines = await fetch("../src/pipelines/piplines.json").then(response => response.json());
+  state.pipelines = await state.ipcRenderer.invoke('get-pipelines') || [];
 })();
 
 ipcRenderer.on('updateModal', (event, updateObj) => {

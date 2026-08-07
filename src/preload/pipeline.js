@@ -152,7 +152,7 @@ class Pipeline {
    */
   resolveInput() {
     if (this.input === "clipboard") {
-      return navigator.clipboard.readText();
+      return state.ipcRenderer.invoke('clipboard-read-text');
     }
     if (this.input === "search") {
       return state.getSearch().value;
@@ -171,7 +171,7 @@ class Pipeline {
 
     switch (this.output) {
       case "clipboard":
-        navigator.clipboard.writeText(value);
+        state.ipcRenderer.send('clipboard-write-text', value);
         break;
       case "answer":
         let answer = new Answer("../static/images/icon.svg", value);

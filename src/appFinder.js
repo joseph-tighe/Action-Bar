@@ -3,8 +3,9 @@ const fs = require('fs');
 const os = require('node:os');
 const { exec, execSync, spawn } = require('child_process');
 const { app } = require('electron/main');
+const { loadSettings } = require('./paths');
 
-const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
+const settings = loadSettings();
 
 var packageCache = null;
 var iconCache = new Map();
@@ -356,11 +357,13 @@ async function getAppIcon(appObj) {
         }
         if (!iconResult && appObj.targetPath) {
             const execPath = appObj.targetPath.replace(/%(u|U|f|F|i|c|k)/g, '').trim().split(/\s+/)[0].replace(/["']/g, '');
-            try {
-                const nativeImage = await app.getFileIcon(execPath, { size: 'small' });
-                iconResult = nativeImage.toDataURL();
-            } catch (e) {
-                console.error('Linux icon extract error:', e);
+            if (execPath && fs.existsSync(execPath)) {
+                try {
+                    const nativeImage = await app.getFileIcon(execPath, { size: 'small' });
+                    iconResult = nativeImage.toDataURL();
+                } catch (e) {
+                    console.error('Linux icon extract error:', e);
+                }
             }
         }
     } else if (appObj.type === 'win32') {
@@ -443,10 +446,9 @@ getApps();
 
 console.log("valid apps found\nsearching for files...");
 
-const filesForSearch = [];
-const filesHash = {};
-var initDirs = buildSearchDirs();
-/**
+var filesForSearch = [];
+var filesHash = {};
+var initDirs = buildSearchDirs();/**
  * Populates the file search index by scanning the configured starting
  * directories up to the configured initial depth.
  */
@@ -491,12 +493,18 @@ async function getFilesFor(dir, depth, maxDepth) {
     }
     for (const file of files) {
       const filePath = path.join(dir, file);
-      if (fs.statSync(filePath).isDirectory() && !file.includes(".") && checkPermissionsSync(filePath) && !settings['search-files']['invalid-directories'].includes(file)) {
+      let stat;
+      try {
+        stat = fs.statSync(filePath);
+      } catch {
+        continue;
+      }
+      if (stat.isDirectory() && !file.includes(".") && checkPermissionsSync(filePath) && !settings['search-files']['invalid-directories'].includes(file)) {
         getFilesFor(filePath, depth, maxDepth);
         filesHash[file] = filePath;
         filesForSearch.push(file);
-      } else if (file.endsWith("." + settings['search-files']['invalid-file-extensions'].join("."))) {
-      } else if (fs.statSync(filePath).isFile()) {
+      } else if (settings['search-files']['invalid-file-extensions'].some(ext => file.endsWith(ext))) {
+      } else if (stat.isFile()) {
         filesHash[file] = filePath;
         filesForSearch.push(file);
       }

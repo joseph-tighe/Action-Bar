@@ -22,7 +22,7 @@ class Extention {
     this.isDefualt = isDefualt;
     if (this.copyFunction == null || this.copyFunction == undefined) {
       this.copyFunction = function(text) {
-        navigator.clipboard.writeText(text);
+        state.ipcRenderer.send('clipboard-write-text', text);
       }
     }
     this.description = description;
@@ -114,13 +114,13 @@ state.ipcRenderer.on('get-extentions', (event, files) => {
   (async () => {
   var manifests = {};
   for (const file of files) {
-    let data = await fetch(`../src/extentions/${file}/manifest.json`).then(response => response.json());
+    let data = await state.ipcRenderer.invoke('get-extention-manifest', file);
     manifests[file] = data;
   }
   for (const file of files) {
     let data = manifests[file];
-    if (data.settings.active) {
-      let code = await fetch(`../src/extentions/${file}/${data.file}`).then(response => response.text());
+    if (data && data.settings && data.settings.active) {
+      let code = await state.ipcRenderer.invoke('get-extention-code', file, data.file);
       const ipcRenderer = state.ipcRenderer;
       eval(code);
       let feature = eval(`(() => {

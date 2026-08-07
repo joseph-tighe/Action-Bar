@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, Menu } = require('electron/main')
+const { app, Tray, BrowserWindow, globalShortcut, ipcMain, Notification, shell, screen, Menu, clipboard } = require('electron/main')
 const path = require('node:path')
 const os = require('node:os')
 const fs = require('fs');
@@ -7,13 +7,35 @@ const https = require('https');
 const AdmZip = require('adm-zip');
 const { resolvePathForQuery } = require('./appFinder');
 const updater = require('./updater/updater');
+const { loadSettings, getSettingsPath, getExtentionsDir, getPipelinesPath, ensureExtentions, ensurePipelines } = require('./paths');
 
 let tray = null;
+
+// On Wayland, window positioning, transparency and global shortcuts are not
+// supported the way they are on X11/Windows. Relaunch under XWayland (which
+// every major Wayland desktop ships) so the app behaves like its Windows build.
+if (process.platform === 'linux' && process.env.XDG_SESSION_TYPE === 'wayland' && !process.argv.includes('--ozone-platform=x11')) {
+  app.relaunch({ args: [...process.argv.slice(1), '--ozone-platform=x11'] });
+  app.exit(0);
+}
+
+// Only allow a single instance so the global shortcut is not contended for.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      toggleWindowVisibility();
+    }
+  });
+}
 
 console.log(__dirname);
 app.commandLine.appendSwitch('enable-features', 'GlobalShortcutsPortal')
 
-const settings = JSON.parse(fs.readFileSync(path.join(__dirname, '../../config/settings.json')));
+// Settings are stored in the writable user data dir (the bundle is read-only
+// when packaged as an AppImage).
+const settings = loadSettings();
 
 /**
  * Returns the path to the window/tray/taskbar icon for the current platform.
@@ -42,13 +64,16 @@ function setupAutostart() {
   const desktopEntry = path.join(autostartDir, 'action-bar.desktop');
   if (enabled) {
     fs.mkdirSync(autostartDir, { recursive: true });
-    const execPath = app.getPath('exe');
+    // Inside an AppImage, app.getPath('exe') points at the ephemeral mount
+    // directory which changes every run. APPIMAGE points at the persistent
+    // AppImage file itself.
+    const execPath = process.env.APPIMAGE || app.getPath('exe');
     const content = [
       '[Desktop Entry]',
       'Type=Application',
       'Name=Action Bar',
       'Comment=Launches apps and quick search',
-      `Exec=${execPath}`,
+      `Exec=${JSON.stringify(execPath)}`,
       'Terminal=false',
       'X-GNOME-Autostart-enabled=true',
       ''
@@ -113,6 +138,11 @@ app.whenReady().then(() => {
   });
   if (!ret) {
     console.log('registration failed')
+    try {
+      new Notification({ title: 'Action Bar', body: 'The global shortcut could not be registered. Use the tray icon to open Action Bar.' }).show();
+    } catch (e) {
+      console.log('notification failed', e);
+    }
   }
 
   // Check whether a shortcut is registered.
@@ -272,8 +302,15 @@ ipcMain.on('open-settings', (event) => {
  * @param {Electron.IpcMainEvent} event The IPC event.
  * @param {Object} settings The new settings object.
  */
-ipcMain.on('update-settings', (event, settings) => {
-  fs.writeFileSync(path.join(__dirname, '../../config/settings.json'), JSON.stringify(settings, null, 4));
+ipcMain.handle('update-settings', (event, newSettings) => {
+  try {
+    fs.mkdirSync(path.dirname(getSettingsPath()), { recursive: true });
+    fs.writeFileSync(getSettingsPath(), JSON.stringify(newSettings, null, 4));
+    return { ok: true };
+  } catch (err) {
+    console.error('Failed to save settings:', err);
+    return { ok: false, error: err.message };
+  }
 });
 /**
  * IPC handler: quits and installs a pending app update.
@@ -295,29 +332,113 @@ ipcMain.handle('get-update-state', () => {
  * @param {Object} extensionSettings A map of extension name to settings.
  * @param {Object} dirMap A map of extension name to directory.
  */
-ipcMain.on('update-extention-settings', (event, extensionSettings, dirMap) => {
-  for (const [name, settings] of Object.entries(extensionSettings)) {
-    const dir = dirMap[name];
-    if (!dir) continue;
-    const manifestPath = path.join(__dirname, `../../src/extentions/${dir}/manifest.json`);
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    manifest.settings = settings;
-    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 4));
+ipcMain.handle('update-extention-settings', (event, extensionSettings, dirMap) => {
+  try {
+    for (const [name, extSettings] of Object.entries(extensionSettings)) {
+      const dir = dirMap[name];
+      if (!dir) continue;
+      const manifestPath = path.join(getExtentionsDir(), dir, 'manifest.json');
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.settings = extSettings;
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 4));
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('Failed to save extension settings:', err);
+    return { ok: false, error: err.message };
   }
 });
 /**
- * IPC handler: lists the installed extension directories and replies to the
- * sender.
+ * IPC handler: lists the installed extension directories (from the writable
+ * extensions dir) and replies to the sender.
  * @param {Electron.IpcMainEvent} event The IPC event.
  */
 ipcMain.on('get-extentions', (event) => {
-  fileList = [];
-  fs.readdirSync(path.join(__dirname, '../../src/extentions')).forEach(file => {
-    if (fs.statSync(path.join(__dirname, '../../src/extentions', file)).isDirectory()) {
-      fileList.push(file);
-    }
-  });
-  event.reply('get-extentions', fileList);
+  try {
+    ensureExtentions();
+    const fileList = [];
+    fs.readdirSync(getExtentionsDir()).forEach(file => {
+      if (fs.statSync(path.join(getExtentionsDir(), file)).isDirectory()) {
+        fileList.push(file);
+      }
+    });
+    event.reply('get-extentions', fileList);
+  } catch (err) {
+    console.error('get-extentions failed:', err);
+    event.reply('get-extentions', []);
+  }
+});
+/**
+ * IPC handler: reads an extension's manifest.json from the writable extensions
+ * dir.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} name The extension directory name.
+ * @returns {Promise<Object|null>} The parsed manifest or null.
+ */
+ipcMain.handle('get-extention-manifest', (event, name) => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(getExtentionsDir(), name, 'manifest.json'), 'utf8'));
+  } catch (err) {
+    console.error('get-extention-manifest failed:', err);
+    return null;
+  }
+});
+/**
+ * IPC handler: reads an extension's source file from the writable extensions
+ * dir.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} name The extension directory name.
+ * @param {string} fileName The file to read.
+ * @returns {Promise<string>} The file contents.
+ */
+ipcMain.handle('get-extention-code', (event, name, fileName) => {
+  try {
+    return fs.readFileSync(path.join(getExtentionsDir(), name, fileName), 'utf8');
+  } catch (err) {
+    console.error('get-extention-code failed:', err);
+    return '';
+  }
+});
+/**
+ * IPC handler: returns the current settings object.
+ * @returns {Object} The parsed settings.
+ */
+ipcMain.handle('get-settings', () => {
+  return loadSettings();
+});
+/**
+ * IPC handler: returns the pipelines configuration.
+ * @returns {Object[]} The parsed pipelines.
+ */
+ipcMain.handle('get-pipelines', () => {
+  ensurePipelines();
+  return JSON.parse(fs.readFileSync(getPipelinesPath(), 'utf8'));
+});
+/**
+ * IPC handler: reads text from the system clipboard from the main process so
+ * it works even when the window is hidden/unfocused (Wayland requires focus
+ * for navigator.clipboard).
+ * @returns {Promise<string>} The clipboard text.
+ */
+ipcMain.handle('clipboard-read-text', () => {
+  try {
+    return clipboard.readText();
+  } catch (err) {
+    console.error('clipboard read failed:', err);
+    return '';
+  }
+});
+/**
+ * IPC handler: writes text to the system clipboard from the main process.
+ * @param {Electron.IpcMainEvent} event The IPC event.
+ * @param {string} text The text to write.
+ */
+ipcMain.on('clipboard-write-text', (event, text) => {
+  try {
+    clipboard.writeText(String(text ?? ''));
+  } catch (err) {
+    console.error('clipboard write failed:', err);
+  }
 });
 
 /**
@@ -329,21 +450,22 @@ function downloadExtensionZip(git_repo, commitHash) {
   const URL = `https://github.com/${git_repo}/archive/${commitHash}.zip`;
   console.log(URL);
   const name = git_repo.split('/').pop();
-  const file = fs.createWriteStream(path.join(__dirname, `../../src/extentions/${name}.zip`));
+  ensureExtentions();
+  const file = fs.createWriteStream(path.join(getExtentionsDir(), `${name}.zip`));
   https.get(URL, function (response) {
     if (response.statusCode === 302 || response.statusCode === 301) {
       https.get(response.headers.location, (response) => {
         response.pipe(file);
         file.on('finish', function () {
           file.close();
-          extractZip(path.join(__dirname, `../../src/extentions/${name}.zip`), path.join(__dirname, '../../src/extentions'));
+          extractZip(path.join(getExtentionsDir(), `${name}.zip`), getExtentionsDir());
         });
       });
     } else {
       response.pipe(file);
       file.on('finish', function () {
         file.close();
-        extractZip(path.join(__dirname, `../../src/extentions/${name}.zip`), path.join(__dirname, '../../src/extentions'));
+        extractZip(path.join(getExtentionsDir(), `${name}.zip`), getExtentionsDir());
       });
     }
   });

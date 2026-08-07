@@ -9,10 +9,9 @@ const contentBody = document.querySelector('.content-body');
 const contentHeader = document.querySelector('.content-header');
 const saveBtn = document.getElementById('saveBtn');
 
-fetch('../../config/settings.json')
-  .then(response => response.json())
+ipc.invoke('get-settings')
   .then(data => {
-    settings = data;
+    settings = data || {};
     renderSidebar();
     const firstKey = Object.keys(settings)[0];
     if (firstKey) {
@@ -20,10 +19,20 @@ fetch('../../config/settings.json')
     }
   });
 
-saveBtn.addEventListener('click', () => {
-  ipc.send('update-settings', settings);
-  if (settings.extensions && typeof settings.extensions === 'object') {
-    ipc.send('update-extention-settings', settings.extensions, extentionDirMap);
+saveBtn.addEventListener('click', async () => {
+  try {
+    const result = await ipc.invoke('update-settings', settings);
+    if (result && !result.ok) throw new Error(result.error);
+    if (settings.extensions && typeof settings.extensions === 'object') {
+      const extResult = await ipc.invoke('update-extention-settings', settings.extensions, extentionDirMap);
+      if (extResult && !extResult.ok) throw new Error(extResult.error);
+    }
+    saveBtn.textContent = 'Saved!';
+    setTimeout(() => { saveBtn.textContent = 'Save'; }, 1500);
+  } catch (e) {
+    console.error('Failed to save settings', e);
+    saveBtn.textContent = 'Save Error';
+    setTimeout(() => { saveBtn.textContent = 'Save'; }, 1500);
   }
 });
 
@@ -142,7 +151,8 @@ async function openSetting(key) {
       extentionLoaded = true;
       extentionManifests = [];
       for (const extention of files) {
-        let data = await fetch(`../../src/extentions/${extention}/manifest.json`).then(response => response.json());
+        let data = await ipc.invoke('get-extention-manifest', extention);
+        if (!data) continue;
         extentionManifests.push(data);
         extentionDirMap[data.name] = extention;
       }

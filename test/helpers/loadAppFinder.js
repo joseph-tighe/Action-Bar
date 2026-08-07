@@ -14,7 +14,6 @@ function loadAppFinder(overrides = {}) {
       settings['search-files']['starting-dirs'][key] = false;
     }
   }
-
   const realFs = require('node:fs');
   const patchedFs = {
     ...realFs,
@@ -37,6 +36,11 @@ function loadAppFinder(overrides = {}) {
     __dirname: SRC_DIR,
     module: { exports: {} },
     require: (name) => {
+      if (name === './paths') {
+        return {
+          loadSettings: () => settings
+        };
+      }
       if (name === 'electron/main') {
         return {
           app: {

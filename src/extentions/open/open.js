@@ -65,5 +65,5 @@ async function runOpen(key, output, search) {
     return null;
 }
 function copyOpen(text) {
-  navigator.clipboard.writeText(text.split(" ").splice(2).join(" "));
+  ipcRenderer.send('clipboard-write-text', text.split(" ").splice(2).join(" "));
 }
